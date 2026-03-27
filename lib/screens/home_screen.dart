@@ -1,4 +1,5 @@
-﻿import 'dart:io';
+import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,11 @@ import '../widgets/app_icon_badge.dart';
 import '../widgets/unlock_timer_banner.dart';
 import 'analytics_screen.dart';
 import 'breathing_screen.dart';
-import 'game_screen.dart';
+import 'package:scroll_rok/screens/game_screen.dart';
+import 'safe_mode/safe_instagram_screen.dart';
+import 'safe_mode/safe_youtube_screen.dart';
+
+import 'legal_consent_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ScrollRok iOS'),
+        title: const Text('Scroll Rok'),
         actions: <Widget>[
           IconButton(
             tooltip: 'Analytics',
@@ -63,6 +68,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               );
             },
             icon: const Icon(Icons.insights_rounded),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'Legal',
+            icon: const Icon(Icons.description_outlined),
+            onSelected: (String value) {
+              if (value == 'privacy') {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        LegalDocumentScreen(type: LegalDocumentType.privacy),
+                  ),
+                );
+                return;
+              }
+
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      LegalDocumentScreen(type: LegalDocumentType.terms),
+                ),
+              );
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'privacy',
+                child: Text('Privacy Policy'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'terms',
+                child: Text('Terms & Conditions'),
+              ),
+            ],
           ),
         ],
       ),
@@ -88,6 +125,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   _buildStatusCard(context, state),
                   const SizedBox(height: 14),
+                  _buildSafeModeCard(context, state),
+                  const SizedBox(height: 14),
                   if (state.isTemporarilyUnlocked)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 14),
@@ -108,11 +147,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     icon: Icons.self_improvement_rounded,
                     color: const Color(0xFF00897B),
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const BreathingScreen(),
-                        ),
-                      );
+                      unawaited(_openUnlockChallenge(const BreathingScreen()));
                     },
                   ),
                   const SizedBox(height: 12),
@@ -122,11 +157,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     icon: Icons.extension_rounded,
                     color: const Color(0xFFFF7043),
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const GameScreen(),
-                        ),
-                      );
+                      unawaited(_openUnlockChallenge(const GameScreen()));
                     },
                   ),
                 ],
@@ -145,21 +176,49 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     if (action == 'breathe') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const BreathingScreen(),
-        ),
-      );
+      await _openUnlockChallenge(const BreathingScreen());
       return;
     }
 
     if (action == 'game') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const GameScreen(),
-        ),
-      );
+      await _openUnlockChallenge(const GameScreen());
     }
+  }
+
+  Future<void> _openUnlockChallenge(Widget screen) async {
+    final bool? unlocked = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => screen,
+      ),
+    );
+
+    if (!mounted || unlocked != true) {
+      return;
+    }
+
+    await _showUnlockSuccessDialog();
+  }
+
+  Future<void> _showUnlockSuccessDialog() async {
+    if (!mounted) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Reward Unlocked'),
+          content: const Text('You have earned 10 mins watchtime.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildStatusCard(BuildContext context, AppState state) {
@@ -240,22 +299,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: state.permissionGranted || Platform.isAndroid
-                        ? () async {
-                            if (state.isTemporarilyUnlocked) {
-                              await context.read<AppState>().lockImmediately();
-                              return;
-                            }
-                            await context.read<AppState>().blockAppsNow();
-                          }
-                        : null,
+                    onPressed: state.useSafeMode
+                        ? null
+                        : (state.permissionGranted || Platform.isAndroid)
+                            ? () async {
+                                if (state.isTemporarilyUnlocked) {
+                                  await context.read<AppState>().lockImmediately();
+                                  return;
+                                }
+                                await context.read<AppState>().blockAppsNow();
+                              }
+                            : null,
                     icon: Icon(
                       state.isTemporarilyUnlocked
                           ? Icons.lock_rounded
                           : Icons.block_rounded,
                     ),
                     label: Text(
-                      state.isTemporarilyUnlocked ? 'Lock Now' : 'Block Apps',
+                      state.useSafeMode
+                          ? 'Safe Mode Enabled'
+                          : (state.isTemporarilyUnlocked ? 'Lock Now' : 'Block Apps'),
                     ),
                   ),
                 ),
@@ -267,6 +330,82 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  
+  Widget _buildSafeModeCard(BuildContext context, AppState state) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                const Icon(Icons.safety_check_rounded),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Safe Social Mode',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+                Switch(
+                  value: state.useSafeMode,
+                  onChanged: (bool value) {
+                    unawaited(context.read<AppState>().setUseSafeMode(value));
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Use in-app safe browsing instead of full app blocking for Instagram and YouTube.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: state.useSafeMode
+                        ? () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const SafeInstagramScreen(),
+                              ),
+                            );
+                          }
+                        : null,
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: const Text('Safe Instagram'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: state.useSafeMode
+                        ? () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const SafeYouTubeScreen(),
+                              ),
+                            );
+                          }
+                        : null,
+                    icon: const Icon(Icons.play_circle_outline_rounded),
+                    label: const Text('Safe YouTube'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   Widget _buildAppSelectionCard(BuildContext context, AppState state) {
     return Card(
       elevation: 0,
@@ -562,3 +701,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

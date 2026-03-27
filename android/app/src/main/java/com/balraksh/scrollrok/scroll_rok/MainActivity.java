@@ -51,6 +51,11 @@ public class MainActivity extends FlutterActivity {
                 result.success(true);
                 return;
             }
+            case "lockNow": {
+                AndroidBlockManager.lockNow(this);
+                result.success(true);
+                return;
+            }
             case "getStats": {
                 Map<String, Object> stats = AndroidBlockManager.getStats(this);
                 result.success(stats);
@@ -91,3 +96,4 @@ public class MainActivity extends FlutterActivity {
         }
     }
 }
+

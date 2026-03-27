@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -27,6 +27,8 @@ class AppState extends ChangeNotifier {
   bool _permissionGranted = false;
   bool _isBlockingEnabled = false;
   bool _androidAccessibilityEnabled = false;
+  bool _useSafeMode = false;
+  bool _hasAcceptedLegal = false;
 
   List<TargetApp> _selectedTrackedApps = TargetApp.values.toList(growable: false);
   List<String> _nativeSelectedLabels = <String>[];
@@ -46,6 +48,8 @@ class AppState extends ChangeNotifier {
   bool get permissionGranted => _permissionGranted;
   bool get isBlockingEnabled => _isBlockingEnabled;
   bool get androidAccessibilityEnabled => _androidAccessibilityEnabled;
+  bool get hasAcceptedLegal => _hasAcceptedLegal;
+  bool get useSafeMode => _useSafeMode;
   bool get isTemporarilyUnlocked =>
       _unlockEndsAt != null && _unlockEndsAt!.isAfter(DateTime.now());
 
@@ -82,32 +86,47 @@ class AppState extends ChangeNotifier {
 
   Future<void> initialize() async {
     _setBusy(true);
+    try {
+      _permissionGranted = await _analyticsService.loadPermissionGranted();
+      _isBlockingEnabled = await _analyticsService.loadBlockingEnabled();
+      _useSafeMode = await _analyticsService.loadUseSafeMode();
+      _selectedTrackedApps = await _analyticsService.loadSelectedTargetApps();
+      _nativeSelectedLabels = await _analyticsService.loadNativeSelectedLabels();
 
-    _permissionGranted = await _analyticsService.loadPermissionGranted();
-    _isBlockingEnabled = await _analyticsService.loadBlockingEnabled();
-    _selectedTrackedApps = await _analyticsService.loadSelectedTargetApps();
-    _nativeSelectedLabels = await _analyticsService.loadNativeSelectedLabels();
+      final Map<String, String> persistedMap =
+          await _analyticsService.loadNativeLabelToAppMap();
+      _nativeLabelMappings = _deserializeLabelMap(persistedMap);
+      _unmappedNativeLabels = await _analyticsService.loadUnmappedNativeLabels();
 
-    final Map<String, String> persistedMap =
-        await _analyticsService.loadNativeLabelToAppMap();
-    _nativeLabelMappings = _deserializeLabelMap(persistedMap);
-    _unmappedNativeLabels = await _analyticsService.loadUnmappedNativeLabels();
+      _focusSchedule = await _analyticsService.loadFocusSchedule();
+      _hasAcceptedLegal = await _analyticsService.loadLegalAccepted();
+      _allAnalytics = await _analyticsService.loadDailyAnalytics();
+      _weeklyAnalytics =
+          _analyticsService.weeklySlice(_allAnalytics, DateTime.now());
+      _totalStats = await _analyticsService.loadTotalStats();
 
-    _focusSchedule = await _analyticsService.loadFocusSchedule();
-    _allAnalytics = await _analyticsService.loadDailyAnalytics();
-    _weeklyAnalytics = _analyticsService.weeklySlice(_allAnalytics, DateTime.now());
-    _totalStats = await _analyticsService.loadTotalStats();
+      if (Platform.isAndroid) {
+        _androidAccessibilityEnabled =
+            await _androidBlockService.isAccessibilityEnabled();
+        await _syncAndroidBlockedApps();
+      }
 
-    if (Platform.isAndroid) {
-      _androidAccessibilityEnabled =
-          await _androidBlockService.isAccessibilityEnabled();
-      await _syncAndroidBlockedApps();
+      await refreshUsageFromNative();
+    } catch (error, stackTrace) {
+      debugPrint('AppState initialize failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    } finally {
+      _isReady = true;
+      _setBusy(false);
     }
-
-    _isReady = true;
-    _setBusy(false);
   }
 
+
+  Future<void> acceptLegalAgreements() async {
+    _hasAcceptedLegal = true;
+    await _analyticsService.saveLegalAccepted(true);
+    notifyListeners();
+  }
   Future<bool> requestFamilyPermission() async {
     _setBusy(true);
     try {
@@ -205,10 +224,17 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  
+  Future<void> setUseSafeMode(bool value) async {
+    _useSafeMode = value;
+    await _analyticsService.saveUseSafeMode(value);
+    notifyListeners();
+  }
   Future<void> blockAppsNow() async {
     _setBusy(true);
     try {
       if (Platform.isAndroid) {
+        await _androidBlockService.lockNow();
         await _syncAndroidBlockedApps();
       } else {
         await _iosBlockService.blockApps();
@@ -239,7 +265,7 @@ class AppState extends ChangeNotifier {
 
       if (shouldRecordAnalytics) {
         _allAnalytics = await _analyticsService.recordUnlockEvent(
-          apps: _selectedTrackedApps,
+          apps: TargetApp.values.toList(growable: false),
           durationSeconds: durationMinutes * 60,
         );
         _weeklyAnalytics =
@@ -257,6 +283,7 @@ class AppState extends ChangeNotifier {
     _setBusy(true);
     try {
       if (Platform.isAndroid) {
+        await _androidBlockService.lockNow();
         await _syncAndroidBlockedApps();
       } else {
         await _iosBlockService.blockApps();
@@ -312,56 +339,76 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> refreshUsageFromNative() async {
-    if (Platform.isAndroid) {
-      final Map<String, dynamic> nativeData = await _androidBlockService.getStats();
+    try {
+      if (Platform.isAndroid) {
+        final Map<String, dynamic> nativeData = await _androidBlockService.getStats();
+        if (nativeData.isEmpty) {
+          return;
+        }
+
+        final int unlocks = (nativeData['totalUnlocks'] as num?)?.toInt() ?? 0;
+
+        final Map<String, int> rawOpens = _toIntMap(nativeData['appOpens']);
+        final Map<String, int> rawUsageSeconds =
+            _toIntMap(nativeData['appUsageSeconds']);
+        final Map<String, String> packageToAppId = <String, String>{
+          for (final TargetApp app in TargetApp.values)
+            app.meta.androidPackageId: app.meta.id,
+        };
+
+        final Map<String, int> appOpens = <String, int>{
+          for (final String pkg in packageToAppId.keys) pkg: rawOpens[pkg] ?? 0,
+        };
+        final Map<String, int> appUsageSeconds = <String, int>{
+          for (final String pkg in packageToAppId.keys)
+            pkg: rawUsageSeconds[pkg] ?? 0,
+        };
+
+        final int opened = appOpens.values.fold<int>(0, (int sum, int v) => sum + v);
+        final int socialSeconds =
+            appUsageSeconds.values.fold<int>(0, (int sum, int v) => sum + v);
+
+        _totalStats = _totalStats.copyWith(
+          totalUnlocks: max(_totalStats.totalUnlocks, unlocks),
+          totalSessions: opened,
+          totalSecondsSpent: socialSeconds,
+          totalAppsOpened: opened,
+        );
+
+        _mergeAndroidStatsIntoTodayAnalytics(
+          appOpens: appOpens,
+          appUsageSeconds: appUsageSeconds,
+        );
+
+        await _analyticsService.saveTotalStats(_totalStats);
+        notifyListeners();
+        return;
+      }
+
+      final Map<String, dynamic> nativeData = await _iosBlockService.getUsageData();
       if (nativeData.isEmpty) {
         return;
       }
 
-      final int unlocks = (nativeData['totalUnlocks'] as num?)?.toInt() ?? 0;
-      final int seconds = (nativeData['totalUsageSeconds'] as num?)?.toInt() ?? 0;
-
-      int opened = 0;
-      final dynamic opensMap = nativeData['appOpens'];
-      if (opensMap is Map) {
-        for (final dynamic value in opensMap.values) {
-          opened += (value as num?)?.toInt() ?? 0;
-        }
-      }
+      final int unlocks = (nativeData['unlocks'] as num?)?.toInt() ?? 0;
+      final int sessions = (nativeData['sessions'] as num?)?.toInt() ?? 0;
+      final int seconds = (nativeData['secondsSpent'] as num?)?.toInt() ?? 0;
+      final int opened = sessions * TargetApp.values.length;
 
       _totalStats = _totalStats.copyWith(
-        totalUnlocks: max(_totalStats.totalUnlocks, unlocks),
-        totalSessions: max(_totalStats.totalSessions, opened),
-        totalSecondsSpent: max(_totalStats.totalSecondsSpent, seconds),
-        totalAppsOpened: max(_totalStats.totalAppsOpened, opened),
+        totalUnlocks: unlocks,
+        totalSessions: sessions,
+        totalSecondsSpent: seconds,
+        totalAppsOpened: opened,
       );
 
       await _analyticsService.saveTotalStats(_totalStats);
       notifyListeners();
-      return;
+    } catch (error, stackTrace) {
+      debugPrint('refreshUsageFromNative failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
-
-    final Map<String, dynamic> nativeData = await _iosBlockService.getUsageData();
-    if (nativeData.isEmpty) {
-      return;
-    }
-
-    final int unlocks = (nativeData['unlocks'] as num?)?.toInt() ?? 0;
-    final int sessions = (nativeData['sessions'] as num?)?.toInt() ?? 0;
-    final int seconds = (nativeData['secondsSpent'] as num?)?.toInt() ?? 0;
-    final int opened = (nativeData['openedCount'] as num?)?.toInt() ?? 0;
-
-    _totalStats = _totalStats.copyWith(
-      totalUnlocks: max(_totalStats.totalUnlocks, unlocks),
-      totalSessions: max(_totalStats.totalSessions, sessions),
-      totalSecondsSpent: max(_totalStats.totalSecondsSpent, seconds),
-      totalAppsOpened: max(_totalStats.totalAppsOpened, opened),
-    );
-
-    await _analyticsService.saveTotalStats(_totalStats);
-    notifyListeners();
   }
-
   Future<String?> consumePendingAndroidUnlockAction() async {
     if (!Platform.isAndroid) {
       return null;
@@ -399,6 +446,88 @@ class AppState extends ChangeNotifier {
       }
       notifyListeners();
     });
+  }
+
+  Map<String, int> _toIntMap(dynamic value) {
+    final Map<String, int> mapped = <String, int>{};
+    if (value is! Map) {
+      return mapped;
+    }
+
+    value.forEach((dynamic key, dynamic raw) {
+      final String mapKey = key.toString();
+      if (mapKey.isEmpty) {
+        return;
+      }
+
+      if (raw is num) {
+        mapped[mapKey] = raw.toInt();
+        return;
+      }
+
+      if (raw is String) {
+        mapped[mapKey] = int.tryParse(raw) ?? 0;
+        return;
+      }
+
+      mapped[mapKey] = 0;
+    });
+
+    return mapped;
+  }
+
+  void _mergeAndroidStatsIntoTodayAnalytics({
+    required Map<String, int> appOpens,
+    required Map<String, int> appUsageSeconds,
+  }) {
+    final String key = _dateKey(DateTime.now());
+    final int index = _allAnalytics.indexWhere((DailyAnalytics d) => d.dateKey == key);
+    DailyAnalytics day = index >= 0
+        ? _allAnalytics[index]
+        : DailyAnalytics(dateKey: key, perApp: <String, DailyAppStats>{});
+
+    final Map<String, DailyAppStats> perApp =
+        Map<String, DailyAppStats>.from(day.perApp);
+
+    final Map<String, String> packageToAppId = <String, String>{
+      for (final TargetApp app in TargetApp.values)
+        app.meta.androidPackageId: app.meta.id,
+    };
+
+    for (final MapEntry<String, String> entry in packageToAppId.entries) {
+      final String packageName = entry.key;
+      final String appId = entry.value;
+
+      final int opens = appOpens[packageName] ?? 0;
+      final int seconds = appUsageSeconds[packageName] ?? 0;
+      if (opens <= 0 && seconds <= 0) {
+        continue;
+      }
+
+      final DailyAppStats existing = perApp[appId] ?? DailyAppStats();
+      perApp[appId] = existing.copyWith(
+        sessions: max(existing.sessions, opens),
+        openedCount: max(existing.openedCount, opens),
+        secondsSpent: max(existing.secondsSpent, seconds),
+      );
+    }
+
+    day = day.copyWith(perApp: perApp);
+    if (index >= 0) {
+      _allAnalytics[index] = day;
+    } else {
+      _allAnalytics.add(day);
+    }
+
+    _weeklyAnalytics = _analyticsService.weeklySlice(_allAnalytics, DateTime.now());
+    unawaited(_analyticsService.saveDailyAnalytics(_allAnalytics));
+  }
+
+  String _dateKey(DateTime dateTime) {
+    final String y = dateTime.year.toString().padLeft(4, '0');
+    final String m = dateTime.month.toString().padLeft(2, '0');
+    final String d = dateTime.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
   }
 
   Map<String, String> _serializeLabelMap(Map<String, TargetApp> map) {
@@ -449,3 +578,14 @@ class AppState extends ChangeNotifier {
     super.dispose();
   }
 }
+
+
+
+
+
+
+
+
+
+
+

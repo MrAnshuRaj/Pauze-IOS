@@ -1,10 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="scroll_rok"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:label="Scroll Rok"
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -31,6 +33,7 @@
             android:noHistory="true"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
+            android:launchMode="singleInstance"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
 
         <service
@@ -58,5 +61,11 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
     </queries>
 </manifest>
+
+

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_state.dart';
+import 'home_screen.dart';
 
 class BreathingScreen extends StatefulWidget {
   const BreathingScreen({super.key});
@@ -156,6 +157,10 @@ class _BreathingScreenState extends State<BreathingScreen>
 
     _animateForCurrentPhase();
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Breathing session started.')),
+    );
+
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) async {
       if (!mounted) {
         timer.cancel();
@@ -181,6 +186,7 @@ class _BreathingScreenState extends State<BreathingScreen>
           _phaseIndex = (_phaseIndex + 1) % _selectedPattern.phases.length;
         });
         _animateForCurrentPhase();
+
       }
     });
   }
@@ -194,26 +200,33 @@ class _BreathingScreenState extends State<BreathingScreen>
       _phaseIndex = 0;
     });
     _pulseController.animateTo(0.8);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Breathing session stopped.')),
+      );
+    }
   }
 
   Future<void> _completeSession() async {
+    final appState = context.read<AppState>();
+
+    _timer?.cancel(); // ✅ stop timer
+
     setState(() {
       _running = false;
       _secondsLeft = 0;
     });
 
-    await context.read<AppState>().unblockForDuration(durationMinutes: 10);
+    if (!mounted) return;
 
-    if (!mounted) {
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Great job! Apps unlocked for 10 minutes.'),
-      ),
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
     );
-    Navigator.of(context).pop();
+
+    unawaited(
+      appState.unblockForDuration(durationMinutes: 10),
+    );
   }
 
   void _animateForCurrentPhase() {
@@ -296,4 +309,9 @@ class BreathingPhase {
 }
 
 enum BreathPhaseType { inhale, hold, exhale }
+
+
+
+
+
 

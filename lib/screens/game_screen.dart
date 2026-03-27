@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_state.dart';
+import 'home_screen.dart';
 
 enum MiniGameType { memoryPattern, numberRecall, reactionTap }
 
@@ -21,12 +22,12 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mini Games Unlock'),
-      ),
+      appBar: AppBar(title: const Text('Mini Games Unlock')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: _activeGame == null ? _buildChooser(context) : _buildGame(context),
+        child: _activeGame == null
+            ? _buildChooser(context)
+            : _buildGame(context),
       ),
     );
   }
@@ -37,9 +38,9 @@ class _GameScreenState extends State<GameScreen> {
       children: <Widget>[
         Text(
           'Choose a game to unlock apps',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 6),
         Text(
@@ -97,14 +98,16 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _handleSuccess() async {
-    await context.read<AppState>().unblockForDuration(durationMinutes: 10);
-    if (!mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Success! Apps unlocked for 10 minutes.')),
+    final appState = context.read<AppState>();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
     );
-    Navigator.of(context).pop();
+
+    unawaited(appState.unblockForDuration(durationMinutes: 10));
   }
 
   Widget _gameCard({
@@ -334,7 +337,9 @@ class _MemoryPatternGameState extends State<MemoryPatternGame> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
     widget.onBack();
   }
 }
@@ -405,11 +410,11 @@ class _NumberRecallGameState extends State<NumberRecallGame> {
                     ? Text(
                         _currentNumber,
                         key: const ValueKey<String>('number_visible'),
-                        style:
-                            Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  letterSpacing: 3,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(
+                              letterSpacing: 3,
+                              fontWeight: FontWeight.bold,
+                            ),
                       )
                     : const Text(
                         '••••••',
@@ -498,7 +503,9 @@ class _NumberRecallGameState extends State<NumberRecallGame> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
     widget.onBack();
   }
 }
@@ -576,12 +583,12 @@ class _ReactionTapGameState extends State<ReactionTapGame> {
                 _canTap
                     ? 'Tap now!'
                     : _waiting
-                        ? 'Wait for green'
-                        : 'Too early!',
+                    ? 'Wait for green'
+                    : 'Too early!',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
@@ -619,16 +626,19 @@ class _ReactionTapGameState extends State<ReactionTapGame> {
     setState(() {});
 
     _delayTimer?.cancel();
-    _delayTimer = Timer(Duration(milliseconds: 1400 + _random.nextInt(2000)), () {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _canTap = true;
-        _waiting = false;
-        _signalTime = DateTime.now();
-      });
-    });
+    _delayTimer = Timer(
+      Duration(milliseconds: 1400 + _random.nextInt(2000)),
+      () {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _canTap = true;
+          _waiting = false;
+          _signalTime = DateTime.now();
+        });
+      },
+    );
   }
 
   Future<void> _handleTap() async {
@@ -639,11 +649,14 @@ class _ReactionTapGameState extends State<ReactionTapGame> {
       if (_round >= 5) {
         _countdown?.cancel();
         final double avg =
-            _reactionTimes.reduce((int a, int b) => a + b) / _reactionTimes.length;
-        if (avg <= 600) {
+            _reactionTimes.reduce((int a, int b) => a + b) /
+            _reactionTimes.length;
+        if (avg <= 700) {
           await widget.onSuccess();
         } else {
-          _showFailure('Average reaction too slow (${avg.round()} ms). Try again.');
+          _showFailure(
+            'Average reaction too slow (${avg.round()} ms). Try again.',
+          );
         }
       } else {
         setState(() => _round += 1);
@@ -665,7 +678,9 @@ class _ReactionTapGameState extends State<ReactionTapGame> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
     widget.onBack();
   }
 }
@@ -699,9 +714,9 @@ Widget _header(
             children: <Widget>[
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               Text(subtitle),
             ],
@@ -715,5 +730,3 @@ Widget _header(
     ),
   );
 }
-
-

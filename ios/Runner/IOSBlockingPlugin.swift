@@ -1,4 +1,4 @@
-﻿import Flutter
+import Flutter
 import UIKit
 
 final class IOSBlockingPlugin: NSObject, FlutterPlugin {

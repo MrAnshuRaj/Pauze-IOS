@@ -1,4 +1,6 @@
-﻿import 'package:fl_chart/fl_chart.dart';
+﻿import 'dart:math' as math;
+
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +20,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String _selectedAppId = 'all';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.read<AppState>().refreshUsageFromNative();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final AppState state = context.watch<AppState>();
     final List<DailyAnalytics> week = state.weeklyAnalytics;
@@ -29,7 +42,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         children: <Widget>[
           _filters(),
           const SizedBox(height: 12),
-          _chartCard(context, week),
+          _chartCard(context, week, state.totalStats),
           const SizedBox(height: 14),
           StatCard(
             title: 'Total Unlocks',
@@ -81,7 +94,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 items: <DropdownMenuItem<String>>[
                   const DropdownMenuItem<String>(
                     value: 'all',
-                    child: Text('All Apps'),
+                    child: Text('All Social Apps'),
                   ),
                   ...TargetApp.values.map(
                     (TargetApp app) => DropdownMenuItem<String>(
@@ -108,7 +121,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _chartCard(BuildContext context, List<DailyAnalytics> week) {
+  Widget _chartCard(
+    BuildContext context,
+    List<DailyAnalytics> week,
+    TotalStats totalStats,
+  ) {
     final List<_BarItem> barItems = <_BarItem>[];
     for (int i = 0; i < week.length; i++) {
       final DailyAnalytics day = week[i];
@@ -120,6 +137,32 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         sessions: metric.sessions,
       ));
     }
+
+    final bool hasWeeklyData =
+        barItems.any((item) => item.sessions > 0 || item.unlocks > 0);
+
+    // Fallback: if weekly buckets are empty but totals exist, plot today.
+    if (!hasWeeklyData &&
+        _selectedAppId == 'all' &&
+        (totalStats.totalSessions > 0 || totalStats.totalUnlocks > 0)) {
+      final int todayIndex = DateTime.now().weekday - 1;
+      if (todayIndex >= 0 && todayIndex < barItems.length) {
+        final _BarItem item = barItems[todayIndex];
+        barItems[todayIndex] = _BarItem(
+          x: item.x,
+          dayLabel: item.dayLabel,
+          sessions: totalStats.totalSessions,
+          unlocks: totalStats.totalUnlocks,
+        );
+      }
+    }
+
+    final int maxMetric = barItems.fold<int>(
+      0,
+      (int currentMax, _BarItem item) =>
+          math.max(currentMax, math.max(item.sessions, item.unlocks)),
+    );
+    final double maxY = math.max(4, (maxMetric * 1.2).ceil()).toDouble();
 
     return Card(
       elevation: 0,
@@ -145,6 +188,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               height: 230,
               child: BarChart(
                 BarChartData(
+                  minY: 0,
+                  maxY: maxY,
                   borderData: FlBorderData(show: false),
                   gridData: const FlGridData(
                     show: true,
@@ -186,7 +231,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       ),
                     ),
                   ),
-                  barGroups: barItems.map(( _BarItem item) {
+                  barGroups: barItems.map((_BarItem item) {
                     return BarChartGroupData(
                       x: item.x,
                       barsSpace: 4,
@@ -260,4 +305,3 @@ class _BarItem {
   final int unlocks;
   final int sessions;
 }
-

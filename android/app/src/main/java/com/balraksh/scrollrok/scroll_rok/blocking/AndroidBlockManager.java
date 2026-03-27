@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
 
@@ -13,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +35,17 @@ public final class AndroidBlockManager {
     private static final String KEY_PENDING_UNLOCK_ACTION = "pending_unlock_action";
 
     private static final long BLOCK_LAUNCH_DEBOUNCE_MS = 1500L;
+
+    // Analytics should only track the supported social apps.
+    private static final Set<String> SOCIAL_PACKAGES = new HashSet<>(Arrays.asList(
+            "com.instagram.android",
+            "com.instagram.lite",
+            "com.google.android.youtube",
+            "com.facebook.katana",
+            "com.snapchat.android",
+            "com.linkedin.android",
+            "com.zhiliaoapp.musically"
+    ));
 
     private AndroidBlockManager() {}
 
@@ -62,6 +75,10 @@ public final class AndroidBlockManager {
                 .putLong(KEY_UNLOCK_EXPIRY, expiry)
                 .putInt(KEY_TOTAL_UNLOCKS, prefs(context).getInt(KEY_TOTAL_UNLOCKS, 0) + 1)
                 .apply();
+    }
+
+    public static void lockNow(Context context) {
+        prefs(context).edit().putLong(KEY_UNLOCK_EXPIRY, 0L).apply();
     }
 
     public static boolean isUnlockActive(Context context) {
@@ -105,7 +122,7 @@ public final class AndroidBlockManager {
             return;
         }
 
-        if (previousApp != null && previousStart > 0L) {
+        if (previousApp != null && previousStart > 0L && isSocialPackage(previousApp)) {
             long seconds = Math.max(0L, (now - previousStart) / 1000L);
             if (seconds > 0L) {
                 long total = prefs.getLong(KEY_TOTAL_USAGE_SECONDS, 0L) + seconds;
@@ -119,14 +136,16 @@ public final class AndroidBlockManager {
             }
         }
 
-        JSONObject opens = readJsonObject(prefs.getString(KEY_APP_OPENS, "{}"));
-        long openCount = opens.optLong(packageName, 0L);
-        putLongSafe(opens, packageName, openCount + 1L);
+        if (isSocialPackage(packageName)) {
+            JSONObject opens = readJsonObject(prefs.getString(KEY_APP_OPENS, "{}"));
+            long openCount = opens.optLong(packageName, 0L);
+            putLongSafe(opens, packageName, openCount + 1L);
+            prefs.edit().putString(KEY_APP_OPENS, opens.toString()).apply();
+        }
 
         prefs.edit()
                 .putString(KEY_CURRENT_APP, packageName)
                 .putLong(KEY_CURRENT_APP_START, now)
-                .putString(KEY_APP_OPENS, opens.toString())
                 .apply();
     }
 
@@ -189,7 +208,12 @@ public final class AndroidBlockManager {
         }
         try {
             PackageManager pm = context.getPackageManager();
-            ApplicationInfo appInfo = pm.getApplicationInfo(packageName, 0);
+            ApplicationInfo appInfo;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                appInfo = pm.getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(0));
+            } else {
+                appInfo = pm.getApplicationInfo(packageName, 0);
+            }
             CharSequence label = pm.getApplicationLabel(appInfo);
             if (label != null) {
                 return label.toString();
@@ -224,5 +248,9 @@ public final class AndroidBlockManager {
             map.put(key, object.optLong(key, 0L));
         }
         return map;
+    }
+
+    private static boolean isSocialPackage(String packageName) {
+        return packageName != null && SOCIAL_PACKAGES.contains(packageName);
     }
 }

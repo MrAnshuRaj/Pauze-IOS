@@ -1,26 +1,47 @@
 package com.balraksh.scrollrok.scroll_rok.blocking;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.OnBackPressedCallback;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
 import com.balraksh.scrollrok.scroll_rok.MainActivity;
 import com.balraksh.scrollrok.scroll_rok.R;
 
-public class BlockActivity extends Activity {
+public class BlockActivity extends ComponentActivity {
     public static final String EXTRA_BLOCKED_PACKAGE = "blocked_package";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getWindow().addFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-                        | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-        );
+        // Keep screen on while the blocking screen is visible.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        // Use AndroidX compat APIs to control immersive mode without deprecated platform calls.
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat insetsController =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        if (insetsController != null) {
+            insetsController.hide(WindowInsetsCompat.Type.systemBars());
+            insetsController.setSystemBarsBehavior(
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        }
+
+        // Block back navigation across API levels.
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Intentionally empty to keep users on this blocking screen.
+            }
+        });
 
         setContentView(R.layout.activity_block);
 
@@ -54,10 +75,5 @@ public class BlockActivity extends Activity {
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(flutter);
         finish();
-    }
-
-    @Override
-    public void onBackPressed() {
-        // Consume back to keep the blocking wall active.
     }
 }

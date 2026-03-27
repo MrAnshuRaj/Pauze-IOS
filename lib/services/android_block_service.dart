@@ -23,6 +23,13 @@ class AndroidBlockService {
     });
   }
 
+  Future<void> lockNow() async {
+    if (!Platform.isAndroid) {
+      return;
+    }
+    await _channel.invokeMethod<void>('lockNow');
+  }
+
   Future<Map<String, dynamic>> getStats() async {
     if (!Platform.isAndroid) {
       return <String, dynamic>{};
@@ -73,3 +80,4 @@ class AndroidBlockService {
     await unlockApps(durationMinutes);
   }
 }
+

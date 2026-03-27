@@ -1,4 +1,4 @@
-﻿import DeviceActivity
+import DeviceActivity
 import FamilyControls
 import Foundation
 import ManagedSettings
@@ -37,6 +37,7 @@ final class ScreenTimeManager: ScreenTimeManagerProtocol {
   private let usageSessionsKey = "scrollrok.usage.sessions"
   private let usageSecondsKey = "scrollrok.usage.seconds"
   private let usageOpenedKey = "scrollrok.usage.opened"
+  private let socialAppCount = 7
 
   private var selection = FamilyActivitySelection()
   private var relockWorkItem: DispatchWorkItem?
@@ -109,7 +110,7 @@ final class ScreenTimeManager: ScreenTimeManagerProtocol {
     defaults.set(endDate.timeIntervalSince1970, forKey: unlockUntilKey)
 
     scheduleRelock(afterSeconds: totalSeconds)
-    incrementUsage(unlocks: 1, sessions: 1, seconds: totalSeconds, openedCount: currentSelectionCount())
+    incrementUsage(unlocks: 1, sessions: 1, seconds: totalSeconds, openedCount: socialAppCount)
   }
 
   func scheduleBlocking(startHour: Int, startMinute: Int, endHour: Int, endMinute: Int, enabled: Bool) throws {
@@ -187,6 +188,7 @@ final class ScreenTimeManager: ScreenTimeManagerProtocol {
       "Facebook",
       "Snapchat",
       "LinkedIn",
+      "TikTok",
     ]
 
     return Array(logical.prefix(min(count, logical.count)))
@@ -268,4 +270,5 @@ struct FamilyPickerContainer: View {
     }
   }
 }
+
 

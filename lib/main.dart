@@ -1,13 +1,21 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/app_state.dart';
 import 'screens/home_screen.dart';
+import 'screens/legal_consent_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/ios_block_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kDebugMode && Platform.isAndroid) {
+    InAppWebViewController.setWebContentsDebuggingEnabled(true);
+  }
   runApp(const ScrollRokApp());
 }
 
@@ -27,7 +35,7 @@ class ScrollRokApp extends StatelessWidget {
         analyticsService: AnalyticsService(),
       )..initialize(),
       child: MaterialApp(
-        title: 'ScrollRok iOS',
+        title: 'Scroll Rok',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
@@ -56,9 +64,34 @@ class ScrollRokApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const HomeScreen(),
+        home: const _AppEntry(),
       ),
     );
   }
 }
+
+class _AppEntry extends StatelessWidget {
+  const _AppEntry();
+
+  @override
+  Widget build(BuildContext context) {
+    final AppState state = context.watch<AppState>();
+
+    if (!state.isReady) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (!state.hasAcceptedLegal) {
+      return LegalConsentFlow(
+        onAccepted: () => context.read<AppState>().acceptLegalAgreements(),
+      );
+    }
+
+    return const HomeScreen();
+  }
+}
+
+
 

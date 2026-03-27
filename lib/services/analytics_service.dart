@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,7 +15,9 @@ class AnalyticsService {
   static const String _unmappedNativeLabelsKey = 'native_unmapped_labels';
   static const String _focusScheduleKey = 'focus_schedule';
   static const String _isBlockingEnabledKey = 'is_blocking_enabled';
+  static const String _useSafeModeKey = 'use_safe_mode';
   static const String _hasPermissionKey = 'has_family_permission';
+  static const String _legalAcceptedKey = 'legal_consent_accepted_v1';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
@@ -114,6 +116,16 @@ class AnalyticsService {
     await prefs.setBool(_isBlockingEnabledKey, value);
   }
 
+  
+  Future<bool> loadUseSafeMode() async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getBool(_useSafeModeKey) ?? false;
+  }
+
+  Future<void> saveUseSafeMode(bool value) async {
+    final SharedPreferences prefs = await _prefs;
+    await prefs.setBool(_useSafeModeKey, value);
+  }
   Future<bool> loadPermissionGranted() async {
     final SharedPreferences prefs = await _prefs;
     return prefs.getBool(_hasPermissionKey) ?? false;
@@ -223,6 +235,16 @@ class AnalyticsService {
         .toList(growable: false);
   }
 
+
+  Future<bool> loadLegalAccepted() async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getBool(_legalAcceptedKey) ?? false;
+  }
+
+  Future<void> saveLegalAccepted(bool value) async {
+    final SharedPreferences prefs = await _prefs;
+    await prefs.setBool(_legalAcceptedKey, value);
+  }
   String _dateKey(DateTime dateTime) {
     final String y = dateTime.year.toString().padLeft(4, '0');
     final String m = dateTime.month.toString().padLeft(2, '0');
@@ -230,3 +252,5 @@ class AnalyticsService {
     return '$y-$m-$d';
   }
 }
+
+
