@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
@@ -20,11 +22,13 @@ class _SafeWebViewScreenState extends State<SafeWebViewScreen> {
   InAppWebViewController? _controller;
   bool _isLoading = true;
   bool _isRedirecting = false;
+  int _fallbackIndex = 0;
   final CookieManager _cookieManager = CookieManager.instance();
 
   // Keep native WebView defaults where possible for maximum site compatibility.
   InAppWebViewSettings get _settings => InAppWebViewSettings(
         javaScriptEnabled: true,
+        userAgent: widget.logic.customUserAgent,
         javaScriptCanOpenWindowsAutomatically: true,
         domStorageEnabled: true,
         databaseEnabled: true,
@@ -98,6 +102,9 @@ class _SafeWebViewScreenState extends State<SafeWebViewScreen> {
                 WebResourceRequest request,
                 WebResourceError error,
               ) {
+                if ((request.isForMainFrame ?? true) && _isNameResolutionError(error)) {
+                  unawaited(_loadNextFallbackHost());
+                }
                 if (!mounted) {
                   return;
                 }
@@ -172,15 +179,40 @@ class _SafeWebViewScreenState extends State<SafeWebViewScreen> {
     }
   }
 
+  bool _isNameResolutionError(WebResourceError error) {
+    final String desc = error.description.toLowerCase();
+    return desc.contains('err_name_not_resolved');
+  }
+
+  Future<void> _loadNextFallbackHost() async {
+    if (_controller == null) {
+      return;
+    }
+    final List<Uri> fallbacks = widget.logic.fallbackHomeUris;
+    if (_fallbackIndex >= fallbacks.length) {
+      return;
+    }
+
+    final Uri nextUri = fallbacks[_fallbackIndex];
+    _fallbackIndex += 1;
+    await _controller!.loadUrl(
+      urlRequest: URLRequest(url: WebUri.uri(nextUri)),
+    );
+  }
+
   Future<void> _applySafetyScript() async {
     if (_controller == null) {
       return;
     }
 
     try {
+      final String script = SafeModeJs.scriptFor(widget.logic.platform);
+      if (script.trim().isEmpty) {
+        return;
+      }
       await _cookieManager.getCookies(url: WebUri.uri(widget.logic.homeUri));
       await _controller!.evaluateJavascript(
-        source: SafeModeJs.scriptFor(widget.logic.platform),
+        source: script,
       );
     } catch (_) {
       // Best effort injection: URL guard still enforces policy if selectors change.

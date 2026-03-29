@@ -12,6 +12,7 @@ import '../widgets/unlock_timer_banner.dart';
 import 'analytics_screen.dart';
 import 'breathing_screen.dart';
 import 'package:scroll_rok/screens/game_screen.dart';
+import 'safe_mode/safe_facebook_screen.dart';
 import 'safe_mode/safe_instagram_screen.dart';
 import 'safe_mode/safe_youtube_screen.dart';
 
@@ -362,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 8),
             Text(
-              'Use in-app safe browsing instead of full app blocking for Instagram and YouTube.',
+              'Use in-app safe browsing instead of full app blocking for Instagram, YouTube, and Facebook.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
@@ -397,6 +398,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         : null,
                     icon: const Icon(Icons.play_circle_outline_rounded),
                     label: const Text('Safe YouTube'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: state.useSafeMode
+                        ? () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const SafeFacebookScreen(),
+                              ),
+                            );
+                          }
+                        : null,
+                    icon: const Icon(Icons.facebook),
+                    label: const Text('Safe Facebook'),
                   ),
                 ),
               ],
