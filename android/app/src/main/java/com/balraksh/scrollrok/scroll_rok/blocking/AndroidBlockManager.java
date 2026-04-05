@@ -32,6 +32,8 @@ public final class AndroidBlockManager {
     private static final String KEY_TOTAL_USAGE_SECONDS = "stats_total_usage_seconds";
     private static final String KEY_APP_OPENS = "stats_app_opens_json";
     private static final String KEY_APP_USAGE = "stats_app_usage_json";
+    private static final String KEY_SCROLL_BLOCKED_COUNT = "stats_scroll_blocked_count";
+    private static final String KEY_LAST_UNLOCK_START_MS = "last_unlock_start_ms";
     private static final String KEY_PENDING_UNLOCK_ACTION = "pending_unlock_action";
 
     private static final long BLOCK_LAUNCH_DEBOUNCE_MS = 1500L;
@@ -73,6 +75,7 @@ public final class AndroidBlockManager {
         long expiry = now + (Math.max(1, durationMinutes) * 60L * 1000L);
         prefs(context).edit()
                 .putLong(KEY_UNLOCK_EXPIRY, expiry)
+                .putLong(KEY_LAST_UNLOCK_START_MS, now)
                 .putInt(KEY_TOTAL_UNLOCKS, prefs(context).getInt(KEY_TOTAL_UNLOCKS, 0) + 1)
                 .apply();
     }
@@ -162,11 +165,27 @@ public final class AndroidBlockManager {
         result.put("totalUnlocks", prefs.getInt(KEY_TOTAL_UNLOCKS, 0));
         result.put("totalUsageSeconds", prefs.getLong(KEY_TOTAL_USAGE_SECONDS, 0L));
         result.put("unlockExpiry", prefs.getLong(KEY_UNLOCK_EXPIRY, 0L));
+        result.put("lastUnlockStartMs", prefs.getLong(KEY_LAST_UNLOCK_START_MS, 0L));
+        result.put("scrollBlockedCount", prefs.getLong(KEY_SCROLL_BLOCKED_COUNT, 0L));
         result.put("currentForegroundApp", prefs.getString(KEY_CURRENT_APP, ""));
         result.put("appOpens", jsonToMap(readJsonObject(prefs.getString(KEY_APP_OPENS, "{}"))));
         result.put("appUsageSeconds", jsonToMap(readJsonObject(prefs.getString(KEY_APP_USAGE, "{}"))));
 
         return result;
+    }
+
+    public static void recordScrollBlocked(Context context) {
+        SharedPreferences prefs = prefs(context);
+        long current = prefs.getLong(KEY_SCROLL_BLOCKED_COUNT, 0L);
+        prefs.edit().putLong(KEY_SCROLL_BLOCKED_COUNT, current + 1L).apply();
+    }
+
+    public static long getScrollBlockedCount(Context context) {
+        return prefs(context).getLong(KEY_SCROLL_BLOCKED_COUNT, 0L);
+    }
+
+    public static long getLastUnlockStartMs(Context context) {
+        return prefs(context).getLong(KEY_LAST_UNLOCK_START_MS, 0L);
     }
 
     public static void setPendingUnlockAction(Context context, String action) {

@@ -36,6 +36,21 @@
             android:launchMode="singleInstance"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
 
+        <activity
+            android:name=".HomeActivity"
+            android:exported="false"
+            android:theme="@style/HomeTheme" />
+
+        <activity
+            android:name=".BreathingSelectionActivity"
+            android:exported="false"
+            android:theme="@style/HomeTheme" />
+
+        <activity
+            android:name=".GameSelectionActivity"
+            android:exported="false"
+            android:theme="@style/HomeTheme" />
+
         <service
             android:name=".blocking.AppBlockAccessibilityService"
             android:enabled="true"

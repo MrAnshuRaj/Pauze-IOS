@@ -38,6 +38,7 @@ class AppState extends ChangeNotifier {
   FocusSchedule? _focusSchedule;
   DateTime? _unlockEndsAt;
   Timer? _unlockTicker;
+  int _scrollBlockedCount = 0;
 
   List<DailyAnalytics> _allAnalytics = <DailyAnalytics>[];
   List<DailyAnalytics> _weeklyAnalytics = <DailyAnalytics>[];
@@ -70,6 +71,7 @@ class AppState extends ChangeNotifier {
       .toList(growable: false);
 
   FocusSchedule? get focusSchedule => _focusSchedule;
+  int get scrollBlockedCount => _scrollBlockedCount;
 
   List<DailyAnalytics> get weeklyAnalytics =>
       List<DailyAnalytics>.unmodifiable(_weeklyAnalytics);
@@ -347,6 +349,8 @@ class AppState extends ChangeNotifier {
         }
 
         final int unlocks = (nativeData['totalUnlocks'] as num?)?.toInt() ?? 0;
+        _scrollBlockedCount =
+            (nativeData['scrollBlockedCount'] as num?)?.toInt() ?? _scrollBlockedCount;
 
         final Map<String, int> rawOpens = _toIntMap(nativeData['appOpens']);
         final Map<String, int> rawUsageSeconds =

@@ -1,4 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="accessibility_service_description">ScrollRok app blocker service</string>
+    <string name="sr_app_name">ScrollRok</string>
+    <string name="sr_notifications">Notifications</string>
+    <string name="sr_pause">Pause</string>
+    <string name="sr_active">Active</string>
+    <string name="sr_paused">Paused</string>
+    <string name="sr_summary">Summary</string>
+    <string name="sr_time_wasted">Time Wasted</string>
+    <string name="sr_total_scroll">Total Scroll</string>
+    <string name="sr_scroll_blocked">Scroll Blocked</string>
+    <string name="sr_app_opened">App Opened</string>
+    <string name="sr_focus_time">Focus Time</string>
+    <string name="sr_start_time">Start Time</string>
+    <string name="sr_end_time">End Time</string>
+    <string name="sr_play">Play</string>
+    <string name="sr_breathing_unlock">Breathing Unlock</string>
+    <string name="sr_breathing_subtitle">Complete a 2-minute guided breathing session</string>
+    <string name="sr_game_unlock">Mini Games Unlock</string>
+    <string name="sr_game_subtitle">Complete a short brain game to unlock apps</string>
+    <string name="sr_open">Open</string>
+    <string name="sr_blocked_apps">Blocked Apps</string>
+    <string name="sr_home">Home</string>
+    <string name="sr_activity">Activity</string>
+    <string name="sr_profile">Profile</string>
+    <string name="sr_minutes_format">%1$d mins</string>
 </resources>

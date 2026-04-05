@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sr_bg_start">#0E0E11</color>
+    <color name="sr_bg_end">#151821</color>
+    <color name="sr_card">#1C1F26</color>
+    <color name="sr_card_stroke">#2A2E38</color>
+    <color name="sr_text_primary">#FFFFFF</color>
+    <color name="sr_text_secondary">#B7BBC7</color>
+    <color name="sr_blue">#2F80ED</color>
+    <color name="sr_green">#12D876</color>
+    <color name="sr_purple">#7B61FF</color>
+    <color name="sr_chip">#242934</color>
+    <color name="sr_nav_icon">#7A7F8F</color>
+    <color name="sr_warning">#F6B40E</color>
+    <color name="sr_disabled">#4D5361</color>
+</resources>
