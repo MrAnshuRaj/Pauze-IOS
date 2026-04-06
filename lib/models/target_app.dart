@@ -1,4 +1,4 @@
-﻿import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 
 enum TargetApp {
@@ -9,6 +9,7 @@ enum TargetApp {
   snapchat,
   linkedIn,
   tikTok,
+  reddit,
 }
 
 class TargetAppMeta {
@@ -103,6 +104,16 @@ const Map<TargetApp, TargetAppMeta> targetAppMeta = <TargetApp, TargetAppMeta>{
     color: Color(0xFF111111),
     aliases: <String>['musically'],
     keywords: <String>['tiktok', 'tik tok', 'musically'],
+  ),
+  TargetApp.reddit: TargetAppMeta(
+    id: 'reddit',
+    displayName: 'Reddit',
+    bundleId: 'com.reddit.Reddit',
+    androidPackageId: 'com.reddit.frontpage',
+    iconData: FontAwesomeIcons.redditAlien,
+    color: Color(0xFFFF4500),
+    aliases: <String>['redditapp', 'frontpage'],
+    keywords: <String>['reddit', 'subreddit', 'front page'],
   ),
 };
 
@@ -220,3 +231,4 @@ bool _containsAny(String text, List<String> candidates) {
   }
   return false;
 }
+

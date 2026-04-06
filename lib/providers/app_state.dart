@@ -110,6 +110,7 @@ class AppState extends ChangeNotifier {
       if (Platform.isAndroid) {
         _androidAccessibilityEnabled =
             await _androidBlockService.isAccessibilityEnabled();
+        _isBlockingEnabled = _deriveAndroidBlockingEnabled();
         await _syncAndroidBlockedApps();
       }
 
@@ -139,7 +140,9 @@ class AppState extends ChangeNotifier {
           await _androidBlockService.openAccessibilitySettings();
         }
         _permissionGranted = _androidAccessibilityEnabled;
+        _isBlockingEnabled = _deriveAndroidBlockingEnabled();
         await _analyticsService.savePermissionGranted(_permissionGranted);
+        await _analyticsService.saveBlockingEnabled(_isBlockingEnabled);
         notifyListeners();
         return _permissionGranted;
       }
@@ -161,7 +164,9 @@ class AppState extends ChangeNotifier {
     _androidAccessibilityEnabled =
         await _androidBlockService.isAccessibilityEnabled();
     _permissionGranted = _androidAccessibilityEnabled;
+    _isBlockingEnabled = _deriveAndroidBlockingEnabled();
     await _analyticsService.savePermissionGranted(_permissionGranted);
+    await _analyticsService.saveBlockingEnabled(_isBlockingEnabled);
     notifyListeners();
   }
 
@@ -220,7 +225,9 @@ class AppState extends ChangeNotifier {
     await _analyticsService.saveSelectedTargetApps(apps);
 
     if (Platform.isAndroid) {
+      _isBlockingEnabled = _deriveAndroidBlockingEnabled();
       await _syncAndroidBlockedApps();
+      await _analyticsService.saveBlockingEnabled(_isBlockingEnabled);
     }
 
     notifyListeners();
@@ -554,6 +561,12 @@ class AppState extends ChangeNotifier {
     return decoded;
   }
 
+  bool _deriveAndroidBlockingEnabled() {
+    return Platform.isAndroid &&
+        _androidAccessibilityEnabled &&
+        _selectedTrackedApps.isNotEmpty;
+  }
+
   void _setBusy(bool value) {
     if (_isBusy == value) {
       return;
@@ -582,6 +595,7 @@ class AppState extends ChangeNotifier {
     super.dispose();
   }
 }
+
 
 
 

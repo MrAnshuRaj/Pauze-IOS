@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/target_app.dart';
 import '../providers/app_state.dart';
 import '../widgets/glass_container.dart';
 import 'analytics_screen.dart';
+import 'blocked_apps_screen.dart';
 import 'breathing_screen.dart';
 import 'game_screen.dart';
 import 'legal_consent_screen.dart';
@@ -90,6 +92,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         _buildStatusOrb(state),
                         const SizedBox(height: 16),
                         _buildActionButtons(state),
+                        if (Platform.isAndroid && !state.androidAccessibilityEnabled) ...<Widget>[
+                          const SizedBox(height: 14),
+                          _buildGrantAccessCard(state),
+                        ],
                         const SizedBox(height: 14),
                         _buildSafeModeSection(state),
                         const SizedBox(height: 24),
@@ -195,7 +201,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildStatusOrb(AppState state) {
-    final bool blockingActive = state.isBlockingEnabled && !state.isTemporarilyUnlocked;
+    final bool blockingActive = Platform.isAndroid
+        ? state.androidAccessibilityEnabled &&
+            state.selectedTrackedApps.isNotEmpty &&
+            !state.isTemporarilyUnlocked
+        : state.isBlockingEnabled && !state.isTemporarilyUnlocked;
 
     return Column(
       children: <Widget>[
@@ -239,6 +249,85 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildGrantAccessCard(AppState state) {
+    return GlassContainer(
+      borderRadius: 22,
+      ripple: true,
+      onTap: () async {
+        await context.read<AppState>().requestFamilyPermission();
+        if (!mounted) {
+          return;
+        }
+        await context.read<AppState>().refreshAndroidAccessibilityStatus();
+      },
+      padding: const EdgeInsets.all(14),
+      activeGlowColor: _blue,
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: const LinearGradient(
+                colors: <Color>[Color(0xFF3A86FF), Color(0xFF246BFF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: const Icon(Icons.lock_open_rounded, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Grant Access',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Enable Accessibility on Android so ScrollRok can detect and block selected apps.',
+                  style: TextStyle(
+                    color: Color(0xFFBAC0CF),
+                    fontSize: 13,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: const Color(0xFF2F80ED),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: _blue.withValues(alpha: 0.28),
+                  blurRadius: 20,
+                ),
+              ],
+            ),
+            child: const Text(
+              'Grant',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   Widget _buildActionButtons(AppState state) {
     final bool pauseActive = state.isTemporarilyUnlocked;
 
@@ -502,14 +591,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildBlockedAppsChips() {
-    const List<String> apps = <String>[
-      'Instagram',
-      'YouTube',
-      'Facebook',
-      'Snapchat',
-      'LinkedIn',
-      'TikTok',
-    ];
+    final List<String> apps = context
+        .watch<AppState>()
+        .selectedTrackedApps
+        .map((TargetApp app) => app.meta.displayName)
+        .toList(growable: false);
 
     return GlassContainer(
       borderRadius: 20,
@@ -585,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Expanded(
               child: IconButton(
                 onPressed: () {
-                  Navigator.of(context).push(
+                  Navigator.of(context).pushReplacement(
                     MaterialPageRoute<void>(builder: (_) => const AnalyticsScreen()),
                   );
                 },
@@ -595,13 +681,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Expanded(
               child: IconButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => LegalDocumentScreen(type: LegalDocumentType.privacy),
-                    ),
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute<void>(builder: (_) => const BlockedAppsScreen()),
                   );
                 },
-                icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF7A8092)),
+                icon: const Icon(Icons.block_rounded, color: Color(0xFF7A8092)),
               ),
             ),
           ],
@@ -1003,3 +1087,8 @@ class _SafeAppButton extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
