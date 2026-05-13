@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 import 'screens/home_screen.dart';
 import 'screens/legal_consent_screen.dart';
+import 'screens/onboarding/onboarding_flow_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/ios_block_service.dart';
 
@@ -59,9 +60,7 @@ class ScrollRokApp extends StatelessWidget {
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
             fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
         home: const _AppEntry(),
@@ -78,8 +77,12 @@ class _AppEntry extends StatelessWidget {
     final AppState state = context.watch<AppState>();
 
     if (!state.isReady) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!state.hasCompletedOnboarding) {
+      return OnboardingFlowScreen(
+        onCompleted: () => context.read<AppState>().completeOnboarding(),
       );
     }
 
@@ -92,6 +95,3 @@ class _AppEntry extends StatelessWidget {
     return const HomeScreen();
   }
 }
-
-
-

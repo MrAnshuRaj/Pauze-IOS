@@ -18,13 +18,21 @@ class AnalyticsService {
   static const String _useSafeModeKey = 'use_safe_mode';
   static const String _hasPermissionKey = 'has_family_permission';
   static const String _legalAcceptedKey = 'legal_consent_accepted_v1';
+  static const String _onboardingCompletedKey = 'onboarding_completed_v1';
+  static const String _onboardingDailyScrollHoursKey =
+      'onboarding_daily_scroll_hours';
+  static const String _onboardingSelectedTrapAppsKey =
+      'onboarding_selected_trap_apps';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
   Future<List<TargetApp>> loadSelectedTargetApps() async {
     final SharedPreferences prefs = await _prefs;
-    final List<String> ids = prefs.getStringList(_selectedTargetAppsKey) ??
-        TargetApp.values.map((TargetApp e) => e.meta.id).toList(growable: false);
+    final List<String> ids =
+        prefs.getStringList(_selectedTargetAppsKey) ??
+        TargetApp.values
+            .map((TargetApp e) => e.meta.id)
+            .toList(growable: false);
 
     final List<TargetApp> selected = <TargetApp>[];
     for (final String id in ids) {
@@ -64,10 +72,8 @@ class AnalyticsService {
     final Map<String, dynamic> decoded =
         jsonDecode(raw) as Map<String, dynamic>;
     return decoded.map<String, String>(
-      (String key, dynamic value) => MapEntry<String, String>(
-        key,
-        value.toString(),
-      ),
+      (String key, dynamic value) =>
+          MapEntry<String, String>(key, value.toString()),
     );
   }
 
@@ -92,9 +98,7 @@ class AnalyticsService {
     if (raw == null || raw.isEmpty) {
       return null;
     }
-    return FocusSchedule.fromJson(
-      jsonDecode(raw) as Map<String, dynamic>,
-    );
+    return FocusSchedule.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
 
   Future<void> saveFocusSchedule(FocusSchedule? schedule) async {
@@ -116,7 +120,6 @@ class AnalyticsService {
     await prefs.setBool(_isBlockingEnabledKey, value);
   }
 
-  
   Future<bool> loadUseSafeMode() async {
     final SharedPreferences prefs = await _prefs;
     return prefs.getBool(_useSafeModeKey) ?? false;
@@ -126,6 +129,7 @@ class AnalyticsService {
     final SharedPreferences prefs = await _prefs;
     await prefs.setBool(_useSafeModeKey, value);
   }
+
   Future<bool> loadPermissionGranted() async {
     final SharedPreferences prefs = await _prefs;
     return prefs.getBool(_hasPermissionKey) ?? false;
@@ -138,11 +142,13 @@ class AnalyticsService {
 
   Future<List<DailyAnalytics>> loadDailyAnalytics() async {
     final SharedPreferences prefs = await _prefs;
-    final List<String> raw = prefs.getStringList(_dailyAnalyticsKey) ?? <String>[];
+    final List<String> raw =
+        prefs.getStringList(_dailyAnalyticsKey) ?? <String>[];
     return raw
-        .map((String item) => DailyAnalytics.fromJson(
-              jsonDecode(item) as Map<String, dynamic>,
-            ))
+        .map(
+          (String item) =>
+              DailyAnalytics.fromJson(jsonDecode(item) as Map<String, dynamic>),
+        )
         .toList(growable: false);
   }
 
@@ -150,7 +156,9 @@ class AnalyticsService {
     final SharedPreferences prefs = await _prefs;
     await prefs.setStringList(
       _dailyAnalyticsKey,
-      list.map((DailyAnalytics e) => jsonEncode(e.toJson())).toList(growable: false),
+      list
+          .map((DailyAnalytics e) => jsonEncode(e.toJson()))
+          .toList(growable: false),
     );
   }
 
@@ -176,7 +184,9 @@ class AnalyticsService {
     final String key = _dateKey(now);
 
     final List<DailyAnalytics> current = await loadDailyAnalytics();
-    final int index = current.indexWhere((DailyAnalytics d) => d.dateKey == key);
+    final int index = current.indexWhere(
+      (DailyAnalytics d) => d.dateKey == key,
+    );
 
     DailyAnalytics day = index >= 0
         ? current[index]
@@ -186,7 +196,8 @@ class AnalyticsService {
         Map<String, DailyAppStats>.from(day.perApp);
 
     for (final TargetApp app in apps) {
-      final DailyAppStats existing = updatedPerApp[app.meta.id] ?? DailyAppStats();
+      final DailyAppStats existing =
+          updatedPerApp[app.meta.id] ?? DailyAppStats();
       updatedPerApp[app.meta.id] = existing.copyWith(
         unlocks: existing.unlocks + 1,
         sessions: existing.sessions + 1,
@@ -231,10 +242,13 @@ class AnalyticsService {
     };
 
     return keys
-        .map((String key) => byKey[key] ?? DailyAnalytics(dateKey: key, perApp: <String, DailyAppStats>{}))
+        .map(
+          (String key) =>
+              byKey[key] ??
+              DailyAnalytics(dateKey: key, perApp: <String, DailyAppStats>{}),
+        )
         .toList(growable: false);
   }
-
 
   Future<bool> loadLegalAccepted() async {
     final SharedPreferences prefs = await _prefs;
@@ -245,6 +259,38 @@ class AnalyticsService {
     final SharedPreferences prefs = await _prefs;
     await prefs.setBool(_legalAcceptedKey, value);
   }
+
+  Future<bool> loadOnboardingCompleted() async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getBool(_onboardingCompletedKey) ?? false;
+  }
+
+  Future<void> saveOnboardingCompleted(bool value) async {
+    final SharedPreferences prefs = await _prefs;
+    await prefs.setBool(_onboardingCompletedKey, value);
+  }
+
+  Future<double> loadOnboardingDailyScrollHours() async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getDouble(_onboardingDailyScrollHoursKey) ?? 3.0;
+  }
+
+  Future<void> saveOnboardingDailyScrollHours(double value) async {
+    final SharedPreferences prefs = await _prefs;
+    await prefs.setDouble(_onboardingDailyScrollHoursKey, value);
+  }
+
+  Future<List<String>> loadOnboardingSelectedTrapApps() async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getStringList(_onboardingSelectedTrapAppsKey) ??
+        <String>['instagram'];
+  }
+
+  Future<void> saveOnboardingSelectedTrapApps(List<String> appIds) async {
+    final SharedPreferences prefs = await _prefs;
+    await prefs.setStringList(_onboardingSelectedTrapAppsKey, appIds);
+  }
+
   String _dateKey(DateTime dateTime) {
     final String y = dateTime.year.toString().padLeft(4, '0');
     final String m = dateTime.month.toString().padLeft(2, '0');
@@ -252,5 +298,3 @@ class AnalyticsService {
     return '$y-$m-$d';
   }
 }
-
-

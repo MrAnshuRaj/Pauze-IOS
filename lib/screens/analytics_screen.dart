@@ -133,7 +133,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: <Color>[Color(0xFF090B12), Color(0xFF111522), Color(0xFF181A24)],
+            colors: <Color>[
+              Color(0xFF090B12),
+              Color(0xFF111522),
+              Color(0xFF181A24),
+            ],
           ),
         ),
         child: Stack(
@@ -170,88 +174,89 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(20, 14, 20, 124),
                     sliver: SliverList(
-                      delegate: SliverChildListDelegate(
-                        <Widget>[
-                          _PageHeader(
-                            glassStyle: glassStyle,
-                            onBack: () => Navigator.of(context).maybePop(),
-                          ),
-                          const SizedBox(height: 22),
-                          IntrinsicHeight(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: <Widget>[
-                                Expanded(
-                                  child: _FocusScoreCard(
-                                    snapshot: focusScore,
-                                    glassStyle: glassStyle,
-                                  ),
+                      delegate: SliverChildListDelegate(<Widget>[
+                        _PageHeader(
+                          glassStyle: glassStyle,
+                          onBack: () => Navigator.of(context).maybePop(),
+                        ),
+                        const SizedBox(height: 22),
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              Expanded(
+                                child: _FocusScoreCard(
+                                  snapshot: focusScore,
+                                  glassStyle: glassStyle,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: BlockedAppsCard(
-                                    blockedApps: blockedApps,
-                                    totalCount: math.max(
-                                      blockedApps.length,
-                                      state.selectedTrackedApps.length,
-                                    ),
-                                    glassStyle: glassStyle,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: BlockedAppsCard(
+                                  blockedApps: blockedApps,
+                                  totalCount: math.max(
+                                    blockedApps.length,
+                                    state.selectedTrackedApps.length,
                                   ),
+                                  glassStyle: glassStyle,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 14),
-                          WeeklyScrollChart(
-                            glassStyle: glassStyle,
-                            selectedAppId: _selectedAppId,
-                            chartData: chartData,
-                            apps: _catalog,
-                            onChanged: (String? value) {
-                              if (value == null) {
-                                return;
-                              }
-                              setState(() {
-                                _selectedAppId = value;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          TimeRangeSelector(
-                            value: _selectedRange,
-                            glassStyle: glassStyle,
-                            onChanged: (_TimeRange range) {
-                              setState(() {
-                                _selectedRange = range;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 14),
-                          const _SectionHeader(
-                            title: 'App activity',
-                            subtitle: 'Your most distracting apps for the selected period',
-                          ),
-                          const SizedBox(height: 10),
-                          GlassCard(
-                            glassStyle: glassStyle,
-                            radius: 28,
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              children: entries
-                                  .map(
-                                    (_UsageEntry entry) => Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4),
-                                      child: AppUsageTile(
-                                        entry: entry,
-                                        glassStyle: glassStyle,
-                                      ),
+                        ),
+                        const SizedBox(height: 14),
+                        WeeklyScrollChart(
+                          glassStyle: glassStyle,
+                          selectedAppId: _selectedAppId,
+                          chartData: chartData,
+                          apps: _catalog,
+                          onChanged: (String? value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setState(() {
+                              _selectedAppId = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TimeRangeSelector(
+                          value: _selectedRange,
+                          glassStyle: glassStyle,
+                          onChanged: (_TimeRange range) {
+                            setState(() {
+                              _selectedRange = range;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        const _SectionHeader(
+                          title: 'App activity',
+                          subtitle:
+                              'Your most distracting apps for the selected period',
+                        ),
+                        const SizedBox(height: 10),
+                        GlassCard(
+                          glassStyle: glassStyle,
+                          radius: 28,
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            children: entries
+                                .map(
+                                  (_UsageEntry entry) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
                                     ),
-                                  )
-                                  .toList(growable: false),
-                            ),
+                                    child: AppUsageTile(
+                                      entry: entry,
+                                      glassStyle: glassStyle,
+                                    ),
+                                  ),
+                                )
+                                .toList(growable: false),
                           ),
-                        ],
-                      ),
+                        ),
+                      ]),
                     ),
                   ),
                 ],
@@ -291,9 +296,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
     for (final _AppVisual visual in _catalog) {
       final int seed = _mockSeedFor(visual.id);
-      final int seconds = aggregatedSeconds[visual.id] ??
+      final int seconds =
+          aggregatedSeconds[visual.id] ??
           ((36 + ((seed * 19) % 120)) * 60 * scale).round();
-      final int sessions = aggregatedSessions[visual.id] ??
+      final int sessions =
+          aggregatedSessions[visual.id] ??
           math.max(4, (8 + ((seed * 7) % 22) * scale).round());
       metrics[visual.id] = _UsageMetrics(
         visual: visual,
@@ -315,9 +322,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           tint: app.meta.color,
           accent: Colors.white,
         ),
-        secondsSpent: aggregatedSeconds[app.meta.id] ??
+        secondsSpent:
+            aggregatedSeconds[app.meta.id] ??
             ((28 + ((seed * 13) % 100)) * 60 * scale).round(),
-        sessions: aggregatedSessions[app.meta.id] ??
+        sessions:
+            aggregatedSessions[app.meta.id] ??
             math.max(4, (6 + ((seed * 5) % 18) * scale).round()),
       );
     }
@@ -327,7 +336,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   List<_UsageEntry> _buildUsageEntries(Map<String, _UsageMetrics> usageMap) {
     final List<_UsageMetrics> metrics = usageMap.values.toList()
-      ..sort((_UsageMetrics a, _UsageMetrics b) => b.secondsSpent.compareTo(a.secondsSpent));
+      ..sort(
+        (_UsageMetrics a, _UsageMetrics b) =>
+            b.secondsSpent.compareTo(a.secondsSpent),
+      );
 
     final int topSeconds = metrics.isEmpty ? 1 : metrics.first.secondsSpent;
     return metrics
@@ -348,7 +360,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     AppState state,
     Map<String, _UsageMetrics> usageMap,
   ) {
-    const List<String> labels = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const List<String> labels = <String>[
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+      'Sun',
+    ];
     final double scale = _rangeScale(_selectedRange);
     final List<_ChartDatum> data = <_ChartDatum>[];
     final List<DailyAnalytics> week = state.weeklyAnalytics;
@@ -358,16 +378,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       final int value;
       if (day != null) {
         if (_selectedAppId == 'all') {
-          value = _scaledCount(math.max(day.totalSessions, day.totalOpenedCount), scale);
+          value = _scaledCount(
+            math.max(day.totalSessions, day.totalOpenedCount),
+            scale,
+          );
         } else {
-          final DailyAppStats stats = day.perApp[_selectedAppId] ?? DailyAppStats();
-          value = _scaledCount(math.max(stats.sessions, stats.openedCount), scale);
+          final DailyAppStats stats =
+              day.perApp[_selectedAppId] ?? DailyAppStats();
+          value = _scaledCount(
+            math.max(stats.sessions, stats.openedCount),
+            scale,
+          );
         }
       } else {
         value = 0;
       }
 
-      final int fallbackSeed = _mockSeedFor('${_selectedAppId}_${labels[index]}');
+      final int fallbackSeed = _mockSeedFor(
+        '${_selectedAppId}_${labels[index]}',
+      );
       final int fallback = 6 + (fallbackSeed % 22);
       data.add(
         _ChartDatum(
@@ -383,7 +412,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       return data;
     }
 
-    final _UsageMetrics? metric = _selectedAppId == 'all' ? null : usageMap[_selectedAppId];
+    final _UsageMetrics? metric = _selectedAppId == 'all'
+        ? null
+        : usageMap[_selectedAppId];
     return List<_ChartDatum>.generate(labels.length, (int index) {
       final int seed = _mockSeedFor('${metric?.visual.id ?? 'all'}_$index');
       return _ChartDatum(
@@ -398,40 +429,49 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     AppState state,
     Map<String, _UsageMetrics> usageMap,
   ) {
-    final int totalUsageMinutes = usageMap.values
-        .fold<int>(0, (int sum, _UsageMetrics item) => sum + (item.secondsSpent ~/ 60));
+    final int totalUsageMinutes = usageMap.values.fold<int>(
+      0,
+      (int sum, _UsageMetrics item) => sum + (item.secondsSpent ~/ 60),
+    );
     final int blockedAttempts = _scaledCount(
       state.scrollBlockedCount + state.totalStats.totalUnlocks,
       _rangeScale(_selectedRange),
     );
-    final int successfulBlocks =
-        _scaledCount(state.scrollBlockedCount, _rangeScale(_selectedRange));
+    final int successfulBlocks = _scaledCount(
+      state.scrollBlockedCount,
+      _rangeScale(_selectedRange),
+    );
     final int totalScrolls = _scaledCount(
       math.max(_totalScrollCount, state.totalStats.totalSessions),
       _rangeScale(_selectedRange),
     );
-    final int allowedUsageMinutes =
-        math.max(totalUsageMinutes, state.totalStats.totalSecondsSpent ~/ 60);
+    final int allowedUsageMinutes = math.max(
+      totalUsageMinutes,
+      state.totalStats.totalSecondsSpent ~/ 60,
+    );
     final int distractionMinutes = math.min(
       allowedUsageMinutes,
-      ((allowedUsageMinutes * 0.42) + (state.totalStats.totalUnlocks * 2.5)).round(),
+      ((allowedUsageMinutes * 0.42) + (state.totalStats.totalUnlocks * 2.5))
+          .round(),
     );
-    final double goalAdherence = (1 -
-            ((totalScrolls / 480) * 0.45 + (distractionMinutes / 90) * 0.55))
-        .clamp(0.0, 1.0);
+    final double goalAdherence =
+        (1 - ((totalScrolls / 480) * 0.45 + (distractionMinutes / 90) * 0.55))
+            .clamp(0.0, 1.0);
 
-    final double blockEfficiency = successfulBlocks / math.max(blockedAttempts, 1);
+    final double blockEfficiency =
+        successfulBlocks / math.max(blockedAttempts, 1);
     final double scrollPenalty = math.min(totalScrolls / 300.0, 1.0);
     final double usagePenalty = math.min(allowedUsageMinutes / 180.0, 1.0);
     final double distractionPenalty = math.min(distractionMinutes / 60.0, 1.0);
 
-    final double rawScore = 100 -
+    final double rawScore =
+        100 -
         (25 * scrollPenalty) -
         (20 * usagePenalty) -
         (25 * distractionPenalty) +
         (15 * blockEfficiency) +
         (15 * goalAdherence);
-    final int score = rawScore.round().clamp(0, 100) as int;
+    final int score = rawScore.round().clamp(0, 100);
 
     if (score >= 90) {
       return const _FocusScoreSnapshot(
@@ -461,21 +501,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     ).copyWith(score: score);
   }
 
-  List<_AppVisual> _blockedAppsForCard(AppState state, List<_UsageEntry> entries) {
+  List<_AppVisual> _blockedAppsForCard(
+    AppState state,
+    List<_UsageEntry> entries,
+  ) {
     final List<_AppVisual> tracked = state.selectedTrackedApps
         .map(_toVisualFromTargetApp)
         .toList(growable: false);
     if (tracked.isNotEmpty) {
       return tracked.take(4).toList(growable: false);
     }
-    return entries.take(4).map((_UsageEntry item) => item.visual).toList(growable: false);
+    return entries
+        .take(4)
+        .map((_UsageEntry item) => item.visual)
+        .toList(growable: false);
   }
 
   static _AppVisual _toVisualFromTargetApp(TargetApp app) {
     final _AppVisual? catalogMatch = _catalog.cast<_AppVisual?>().firstWhere(
-          (_AppVisual? visual) => visual?.id == app.meta.id,
-          orElse: () => null,
-        );
+      (_AppVisual? visual) => visual?.id == app.meta.id,
+      orElse: () => null,
+    );
     return catalogMatch ??
         _AppVisual(
           id: app.meta.id,
@@ -511,10 +557,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 enum _TimeRange { day, week, month, year }
 
 class _PageHeader extends StatelessWidget {
-  const _PageHeader({
-    required this.glassStyle,
-    required this.onBack,
-  });
+  const _PageHeader({required this.glassStyle, required this.onBack});
 
   final _AdaptiveGlassStyle glassStyle;
   final VoidCallback onBack;
@@ -539,7 +582,11 @@ class _PageHeader extends StatelessWidget {
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Icon(Icons.auto_graph_rounded, color: Color(0xFFB8C3D9), size: 16),
+                  Icon(
+                    Icons.auto_graph_rounded,
+                    color: Color(0xFFB8C3D9),
+                    size: 16,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'This week',
@@ -567,11 +614,7 @@ class _PageHeader extends StatelessWidget {
         const SizedBox(height: 6),
         const Text(
           'Track focus health, blocking wins, and distracting app patterns.',
-          style: TextStyle(
-            color: Color(0xFF9AA6BF),
-            fontSize: 12,
-            height: 1.4,
-          ),
+          style: TextStyle(color: Color(0xFF9AA6BF), fontSize: 12, height: 1.4),
         ),
       ],
     );
@@ -579,11 +622,7 @@ class _PageHeader extends StatelessWidget {
 }
 
 class _FocusScoreCard extends StatelessWidget {
-  const _FocusScoreCard({
-    super.key,
-    required this.snapshot,
-    required this.glassStyle,
-  });
+  const _FocusScoreCard({required this.snapshot, required this.glassStyle});
 
   final _FocusScoreSnapshot snapshot;
   final _AdaptiveGlassStyle glassStyle;
@@ -609,10 +648,7 @@ class _FocusScoreCard extends StatelessWidget {
           const SizedBox(height: 4),
           const Text(
             'Performance',
-            style: TextStyle(
-              color: Color(0xFF909CB1),
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Color(0xFF909CB1), fontSize: 12),
           ),
           const SizedBox(height: 14),
           DecoratedBox(
@@ -640,21 +676,25 @@ class _FocusScoreCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0, end: snapshot.score.toDouble()),
+                    tween: Tween<double>(
+                      begin: 0,
+                      end: snapshot.score.toDouble(),
+                    ),
                     duration: const Duration(milliseconds: 700),
                     curve: Curves.easeOutCubic,
-                    builder: (BuildContext context, double value, Widget? child) {
-                      return Text(
-                        value.round().toString(),
-                        style: TextStyle(
-                          color: snapshot.tone,
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          height: 0.9,
-                          letterSpacing: -1,
-                        ),
-                      );
-                    },
+                    builder:
+                        (BuildContext context, double value, Widget? child) {
+                          return Text(
+                            value.round().toString(),
+                            style: TextStyle(
+                              color: snapshot.tone,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              height: 0.9,
+                              letterSpacing: -1,
+                            ),
+                          );
+                        },
                   ),
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 4),
@@ -703,7 +743,9 @@ class BlockedAppsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int extra = math.max(0, totalCount - 3);
-    final List<_AppVisual> visibleApps = blockedApps.take(3).toList(growable: false);
+    final List<_AppVisual> visibleApps = blockedApps
+        .take(3)
+        .toList(growable: false);
 
     return GlassCard(
       glassStyle: glassStyle,
@@ -723,10 +765,7 @@ class BlockedAppsCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '$totalCount protected',
-            style: const TextStyle(
-              color: Color(0xFF909CB1),
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Color(0xFF909CB1), fontSize: 12),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -751,7 +790,9 @@ class BlockedAppsCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: const Color(0xFF272B38),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.14),
+                        ),
                       ),
                       alignment: Alignment.center,
                       child: Text(
@@ -795,7 +836,8 @@ class WeeklyScrollChart extends StatelessWidget {
       12,
       chartData.fold<double>(
             0,
-            (double max, _ChartDatum item) => math.max(max, item.value.toDouble()),
+            (double max, _ChartDatum item) =>
+                math.max(max, item.value.toDouble()),
           ) *
           1.2,
     );
@@ -830,10 +872,7 @@ class WeeklyScrollChart extends StatelessWidget {
           const SizedBox(height: 6),
           const Text(
             'Mon to Sun activity for the selected app filter',
-            style: TextStyle(
-              color: Color(0xFF98A5BC),
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Color(0xFF98A5BC), fontSize: 12),
           ),
           const SizedBox(height: 14),
           SizedBox(
@@ -859,29 +898,37 @@ class WeeklyScrollChart extends StatelessWidget {
                   enabled: true,
                   touchTooltipData: BarTouchTooltipData(
                     tooltipBorderRadius: BorderRadius.circular(14),
-                    tooltipPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    tooltipPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
                     tooltipMargin: 8,
                     getTooltipColor: (_) => const Color(0xFF1E2432),
-                    getTooltipItem: (
-                      BarChartGroupData group,
-                      int groupIndex,
-                      BarChartRodData rod,
-                      int rodIndex,
-                    ) {
-                      return BarTooltipItem(
-                        '${chartData[group.x].label}\n${rod.toY.round()} scrolls',
-                        const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          height: 1.35,
-                        ),
-                      );
-                    },
+                    getTooltipItem:
+                        (
+                          BarChartGroupData group,
+                          int groupIndex,
+                          BarChartRodData rod,
+                          int rodIndex,
+                        ) {
+                          return BarTooltipItem(
+                            '${chartData[group.x].label}\n${rod.toY.round()} scrolls',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              height: 1.35,
+                            ),
+                          );
+                        },
                   ),
                 ),
                 titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -913,9 +960,13 @@ class WeeklyScrollChart extends StatelessWidget {
                           child: Text(
                             chartData[index].label,
                             style: TextStyle(
-                              color: highlight ? Colors.white : const Color(0xFF7D879C),
+                              color: highlight
+                                  ? Colors.white
+                                  : const Color(0xFF7D879C),
                               fontSize: 11,
-                              fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: highlight
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                             ),
                           ),
                         );
@@ -923,7 +974,9 @@ class WeeklyScrollChart extends StatelessWidget {
                     ),
                   ),
                 ),
-                barGroups: List<BarChartGroupData>.generate(chartData.length, (int index) {
+                barGroups: List<BarChartGroupData>.generate(chartData.length, (
+                  int index,
+                ) {
                   final _ChartDatum datum = chartData[index];
                   final List<Color> gradient = datum.highlight
                       ? const <Color>[Color(0xFF25F4EE), Color(0xFF4696FF)]
@@ -934,7 +987,9 @@ class WeeklyScrollChart extends StatelessWidget {
                       BarChartRodData(
                         toY: datum.value.toDouble(),
                         width: 18,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(8),
+                        ),
                         gradient: LinearGradient(
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
@@ -1001,57 +1056,66 @@ class TimeRangeSelector extends StatelessWidget {
       radius: 24,
       padding: const EdgeInsets.all(6),
       child: Row(
-        children: _TimeRange.values.map((_TimeRange range) {
-          final bool selected = range == value;
-          return Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutCubic,
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: selected
-                    ? const LinearGradient(
-                        colors: <Color>[Color(0xFF3A86FF), Color(0xFF246BFF)],
-                      )
-                    : null,
-                boxShadow: selected
-                    ? <BoxShadow>[
-                        BoxShadow(
-                          color: const Color(0xFF3A86FF).withValues(alpha: 0.22),
-                          blurRadius: 18,
-                          spreadRadius: 1,
+        children: _TimeRange.values
+            .map((_TimeRange range) {
+              final bool selected = range == value;
+              return Expanded(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    gradient: selected
+                        ? const LinearGradient(
+                            colors: <Color>[
+                              Color(0xFF3A86FF),
+                              Color(0xFF246BFF),
+                            ],
+                          )
+                        : null,
+                    boxShadow: selected
+                        ? <BoxShadow>[
+                            BoxShadow(
+                              color: const Color(
+                                0xFF3A86FF,
+                              ).withValues(alpha: 0.22),
+                              blurRadius: 18,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () => onChanged(range),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          switch (range) {
+                            _TimeRange.day => 'Day',
+                            _TimeRange.week => 'Week',
+                            _TimeRange.month => 'Month',
+                            _TimeRange.year => 'Year',
+                          },
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: selected
+                                ? Colors.white
+                                : const Color(0xFF7F8AA1),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
                         ),
-                      ]
-                    : null,
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(18),
-                  onTap: () => onChanged(range),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      switch (range) {
-                        _TimeRange.day => 'Day',
-                        _TimeRange.week => 'Week',
-                        _TimeRange.month => 'Month',
-                        _TimeRange.year => 'Year',
-                      },
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: selected ? Colors.white : const Color(0xFF7F8AA1),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          );
-        }).toList(growable: false),
+              );
+            })
+            .toList(growable: false),
       ),
     );
   }
@@ -1115,23 +1179,33 @@ class AppUsageTile extends StatelessWidget {
                       height: 8,
                       child: Stack(
                         children: <Widget>[
-                          Container(color: Colors.white.withValues(alpha: 0.07)),
+                          Container(
+                            color: Colors.white.withValues(alpha: 0.07),
+                          ),
                           TweenAnimationBuilder<double>(
                             tween: Tween<double>(begin: 0, end: entry.progress),
                             duration: const Duration(milliseconds: 600),
                             curve: Curves.easeOutCubic,
-                            builder: (BuildContext context, double value, Widget? child) {
-                              return FractionallySizedBox(
-                                widthFactor: value,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: <Color>[entry.visual.tint, entry.visual.accent],
+                            builder:
+                                (
+                                  BuildContext context,
+                                  double value,
+                                  Widget? child,
+                                ) {
+                                  return FractionallySizedBox(
+                                    widthFactor: value,
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: <Color>[
+                                            entry.visual.tint,
+                                            entry.visual.accent,
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              );
-                            },
+                                  );
+                                },
                           ),
                         ],
                       ),
@@ -1197,7 +1271,9 @@ class _GlassBottomNav extends StatelessWidget {
                 selected: false,
                 onTap: () {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute<void>(builder: (_) => const BlockedAppsScreen()),
+                    MaterialPageRoute<void>(
+                      builder: (_) => const BlockedAppsScreen(),
+                    ),
                   );
                 },
               ),
@@ -1240,10 +1316,7 @@ class GlassCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: <Color>[
-                glassStyle.surface,
-                glassStyle.surfaceSecondary,
-              ],
+              colors: <Color>[glassStyle.surface, glassStyle.surfaceSecondary],
             ),
             border: Border.all(color: glassStyle.border),
             boxShadow: <BoxShadow>[
@@ -1270,7 +1343,9 @@ class GlassCard extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: <Color>[
-                        Colors.white.withValues(alpha: glassStyle.topHighlightOpacity),
+                        Colors.white.withValues(
+                          alpha: glassStyle.topHighlightOpacity,
+                        ),
                         Colors.transparent,
                       ],
                     ),
@@ -1297,10 +1372,7 @@ class GlassCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              Padding(
-                padding: padding ?? EdgeInsets.zero,
-                child: child,
-              ),
+              Padding(padding: padding ?? EdgeInsets.zero, child: child),
             ],
           ),
         ),
@@ -1334,9 +1406,7 @@ class GlassIconButton extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
             onTap: onTap,
-            child: Center(
-              child: Icon(icon, color: Colors.white, size: 18),
-            ),
+            child: Center(child: Icon(icon, color: Colors.white, size: 18)),
           ),
         ),
       ),
@@ -1367,7 +1437,10 @@ class _ChartFilterPill extends StatelessWidget {
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             value: value,
-            icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF2E63F5)),
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Color(0xFF2E63F5),
+            ),
             dropdownColor: const Color(0xFFEEF3FF),
             borderRadius: BorderRadius.circular(18),
             style: const TextStyle(
@@ -1463,10 +1536,7 @@ class _BottomNavItem extends StatelessWidget {
 }
 
 class _OverlapAppIcon extends StatelessWidget {
-  const _OverlapAppIcon({
-    required this.visual,
-    required this.glassStyle,
-  });
+  const _OverlapAppIcon({required this.visual, required this.glassStyle});
 
   final _AppVisual visual;
   final _AdaptiveGlassStyle glassStyle;
@@ -1513,10 +1583,7 @@ class _AppIconBadge extends StatelessWidget {
           ],
         ),
         boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: visual.tint.withValues(alpha: 0.24),
-            blurRadius: 18,
-          ),
+          BoxShadow(color: visual.tint.withValues(alpha: 0.24), blurRadius: 18),
         ],
       ),
       alignment: Alignment.center,
@@ -1530,10 +1597,7 @@ class _AppIconBadge extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.title,
-    required this.subtitle,
-  });
+  const _SectionHeader({required this.title, required this.subtitle});
 
   final String title;
   final String subtitle;
@@ -1554,10 +1618,7 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: const TextStyle(
-            color: Color(0xFF8E9BB2),
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Color(0xFF8E9BB2), fontSize: 12),
         ),
       ],
     );
@@ -1586,10 +1647,7 @@ class _SegmentText extends StatelessWidget {
 }
 
 class _BackgroundOrb extends StatelessWidget {
-  const _BackgroundOrb({
-    required this.size,
-    required this.colors,
-  });
+  const _BackgroundOrb({required this.size, required this.colors});
 
   final double size;
   final List<Color> colors;
@@ -1642,7 +1700,9 @@ class _AdaptiveGlassStyle {
       isIos: isIos,
       blurSigma: isIos ? 28 : 18,
       surface: isIos ? const Color(0x30F4F7FF) : const Color(0x24F3F6FF),
-      surfaceSecondary: isIos ? const Color(0x14AEB8D2) : const Color(0x121C2232),
+      surfaceSecondary: isIos
+          ? const Color(0x14AEB8D2)
+          : const Color(0x121C2232),
       border: Colors.white.withValues(alpha: isIos ? 0.18 : 0.10),
       topHighlightOpacity: isIos ? 0.14 : 0.08,
       shadowOpacity: isIos ? 0.22 : 0.30,
@@ -1717,11 +1777,7 @@ class _FocusScoreSnapshot {
   final String subtitle;
   final Color tone;
 
-  _FocusScoreSnapshot copyWith({
-    int? score,
-    String? subtitle,
-    Color? tone,
-  }) {
+  _FocusScoreSnapshot copyWith({int? score, String? subtitle, Color? tone}) {
     return _FocusScoreSnapshot(
       score: score ?? this.score,
       subtitle: subtitle ?? this.subtitle,
@@ -1748,15 +1804,3 @@ String _formatDuration(int seconds) {
 
   return '${safeSeconds}s';
 }
-
-
-
-
-
-
-
-
-
-
-
-
