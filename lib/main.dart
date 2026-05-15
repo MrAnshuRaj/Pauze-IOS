@@ -36,7 +36,7 @@ class ScrollRokApp extends StatelessWidget {
         analyticsService: AnalyticsService(),
       )..initialize(),
       child: MaterialApp(
-        title: 'Scroll Rok',
+        title: 'Pauze',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

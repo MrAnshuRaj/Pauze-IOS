@@ -27,7 +27,11 @@ class BlockedAppsScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: <Color>[Color(0xFF0A0C13), Color(0xFF131722), Color(0xFF1A1C25)],
+            colors: <Color>[
+              Color(0xFF0A0C13),
+              Color(0xFF131722),
+              Color(0xFF1A1C25),
+            ],
           ),
         ),
         child: Stack(
@@ -59,17 +63,27 @@ class BlockedAppsScreen extends StatelessWidget {
                   _BlockedSectionCard(
                     glassStyle: glassStyle,
                     child: Column(
-                      children: TargetApp.values.map((TargetApp app) {
-                        final bool enabled = selected.contains(app);
-                        return _BlockedAppTile(
-                          app: app,
-                          enabled: enabled,
-                          glassStyle: glassStyle,
-                          onChanged: (bool value) {
-                            unawaited(_toggleApp(context, state, selected, app, value));
-                          },
-                        );
-                      }).toList(growable: false),
+                      children: TargetApp.values
+                          .map((TargetApp app) {
+                            final bool enabled = selected.contains(app);
+                            return _BlockedAppTile(
+                              app: app,
+                              enabled: enabled,
+                              glassStyle: glassStyle,
+                              onChanged: (bool value) {
+                                unawaited(
+                                  _toggleApp(
+                                    context,
+                                    state,
+                                    selected,
+                                    app,
+                                    value,
+                                  ),
+                                );
+                              },
+                            );
+                          })
+                          .toList(growable: false),
                     ),
                   ),
                 ],
@@ -90,7 +104,11 @@ class BlockedAppsScreen extends StatelessWidget {
     bool value,
   ) async {
     final List<TargetApp> next = TargetApp.values
-        .where((TargetApp item) => value ? (selected.contains(item) || item == app) : (selected.contains(item) && item != app))
+        .where(
+          (TargetApp item) => value
+              ? (selected.contains(item) || item == app)
+              : (selected.contains(item) && item != app),
+        )
         .toList(growable: false);
 
     await state.setTrackedApps(next);
@@ -133,11 +151,7 @@ class _BlockedHeader extends StatelessWidget {
         const SizedBox(height: 10),
         const Text(
           'Tap any supported app to include it in your active block list.',
-          style: TextStyle(
-            color: Color(0xFF96A2B9),
-            fontSize: 14,
-            height: 1.4,
-          ),
+          style: TextStyle(color: Color(0xFF96A2B9), fontSize: 14, height: 1.4),
         ),
       ],
     );
@@ -145,10 +159,7 @@ class _BlockedHeader extends StatelessWidget {
 }
 
 class _BlockedSectionCard extends StatelessWidget {
-  const _BlockedSectionCard({
-    required this.glassStyle,
-    required this.child,
-  });
+  const _BlockedSectionCard({required this.glassStyle, required this.child});
 
   final _BlockedGlassStyle glassStyle;
   final Widget child;
@@ -204,7 +215,8 @@ class _BlockedAppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool lightIcon = app == TargetApp.linkedIn || app == TargetApp.facebook;
+    final bool lightIcon =
+        app == TargetApp.linkedIn || app == TargetApp.facebook;
     return Column(
       children: <Widget>[
         Material(
@@ -226,7 +238,8 @@ class _BlockedAppTile extends StatelessWidget {
                         end: Alignment.bottomRight,
                         colors: <Color>[
                           app.meta.color.withValues(alpha: 0.95),
-                          (lightIcon ? Colors.white : app.meta.color).withValues(alpha: lightIcon ? 0.28 : 0.72),
+                          (lightIcon ? Colors.white : app.meta.color)
+                              .withValues(alpha: lightIcon ? 0.28 : 0.72),
                         ],
                       ),
                       boxShadow: <BoxShadow>[
@@ -239,7 +252,9 @@ class _BlockedAppTile extends StatelessWidget {
                     alignment: Alignment.center,
                     child: Icon(
                       app.meta.iconData,
-                      color: app == TargetApp.snapchat ? Colors.black : Colors.white,
+                      color: app == TargetApp.snapchat
+                          ? Colors.black
+                          : Colors.white,
                       size: 18,
                     ),
                   ),
@@ -259,7 +274,9 @@ class _BlockedAppTile extends StatelessWidget {
                     child: Switch.adaptive(
                       value: enabled,
                       activeColor: const Color(0xFF3E87FF),
-                      activeTrackColor: const Color(0xFF3E87FF).withValues(alpha: 0.45),
+                      activeTrackColor: const Color(
+                        0xFF3E87FF,
+                      ).withValues(alpha: 0.45),
                       inactiveThumbColor: Colors.white,
                       inactiveTrackColor: Colors.white.withValues(alpha: 0.14),
                       onChanged: onChanged,
@@ -299,10 +316,13 @@ class _BlockedBottomNav extends StatelessWidget {
               Expanded(
                 child: _BottomNavChip(
                   icon: Icons.home_outlined,
+                  label: 'Dashboard',
                   selected: false,
                   onTap: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+                      MaterialPageRoute<void>(
+                        builder: (_) => const HomeScreen(),
+                      ),
                     );
                   },
                 ),
@@ -310,19 +330,21 @@ class _BlockedBottomNav extends StatelessWidget {
               Expanded(
                 child: _BottomNavChip(
                   icon: Icons.auto_graph_rounded,
-                  label: 'Activity',
+                  label: 'Analytics',
                   selected: false,
                   onTap: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute<void>(builder: (_) => const AnalyticsScreen()),
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AnalyticsScreen(),
+                      ),
                     );
                   },
                 ),
               ),
               Expanded(
                 child: _BottomNavChip(
-                  icon: Icons.block_rounded,
-                  label: 'Blocked',
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
                   selected: true,
                   onTap: () {},
                 ),
@@ -477,7 +499,9 @@ class _BlockedGlassStyle {
     return _BlockedGlassStyle(
       blurSigma: isIos ? 26 : 18,
       surface: isIos ? const Color(0x30F4F7FF) : const Color(0x24F3F6FF),
-      surfaceSecondary: isIos ? const Color(0x14AEB8D2) : const Color(0x121C2232),
+      surfaceSecondary: isIos
+          ? const Color(0x14AEB8D2)
+          : const Color(0x121C2232),
       border: Colors.white.withValues(alpha: isIos ? 0.18 : 0.10),
       shadowOpacity: isIos ? 0.22 : 0.30,
     );

@@ -159,11 +159,11 @@ class LegalDocumentScreen extends StatelessWidget {
 }
 
 const String _privacyPolicyText = '''
-ScrollRok Privacy Policy
+Pauze Privacy Policy
 Effective date: March 2026
 
 1. Scope
-This Privacy Policy explains how ScrollRok handles information when you use the app on iOS and Android.
+This Privacy Policy explains how Pauze handles information when you use the app on iOS and Android.
 
 2. Data We Process
 - App configuration data: selected social app labels, focus settings, and block settings.
@@ -174,7 +174,7 @@ This Privacy Policy explains how ScrollRok handles information when you use the 
 We do not sell personal data. We do not use data brokers.
 
 4. Where Data Is Stored
-By default, ScrollRok stores app data locally on your device using platform storage APIs.
+By default, Pauze stores app data locally on your device using platform storage APIs.
 
 5. Permissions
 - iOS: FamilyControls / Screen Time authorization is requested to apply shields and schedules.
@@ -190,21 +190,21 @@ We apply reasonable technical measures for local app data handling, but no syste
 You can revoke permissions in iOS Settings / Android Settings and clear app data from device settings.
 
 9. App Store Compliance Notes (iOS)
-ScrollRok uses Apple’s FamilyControls/ManagedSettings APIs for digital wellbeing controls and not for advertising profiling.
+Pauze uses Apple’s FamilyControls/ManagedSettings APIs for digital wellbeing controls and not for advertising profiling.
 
 10. Contact
 For support or privacy requests, contact the app publisher through the support channel listed with the app release.
 ''';
 
 const String _termsText = '''
-ScrollRok Terms & Conditions
+Pauze Terms & Conditions
 Effective date: March 2026
 
 1. Acceptance
-By confirming these Terms, you agree to use ScrollRok responsibly and in compliance with local law.
+By confirming these Terms, you agree to use Pauze responsibly and in compliance with local law.
 
 2. Intended Use
-ScrollRok is a productivity and digital wellbeing tool designed to help reduce social media overuse.
+Pauze is a productivity and digital wellbeing tool designed to help reduce social media overuse.
 
 3. No Guarantee
 We do not guarantee uninterrupted access or specific outcomes (for example, guaranteed productivity changes).

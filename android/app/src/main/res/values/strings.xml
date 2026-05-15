@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="accessibility_service_description">ScrollRok app blocker service</string>
-    <string name="sr_app_name">ScrollRok</string>
+    <string name="accessibility_service_description">Pauze app blocker service</string>
+    <string name="sr_app_name">Pauze</string>
     <string name="sr_notifications">Notifications</string>
     <string name="sr_pause">Pause</string>
     <string name="sr_active">Active</string>

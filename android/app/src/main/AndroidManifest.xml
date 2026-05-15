@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="Scroll Rok"
+        android:label="Pauze"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">
         <activity
@@ -55,7 +55,7 @@
             android:name=".blocking.AppBlockAccessibilityService"
             android:enabled="true"
             android:exported="true"
-            android:label="ScrollRok App Blocker"
+            android:label="Pauze App Blocker"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />

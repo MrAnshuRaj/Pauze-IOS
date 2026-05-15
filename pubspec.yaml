@@ -95,7 +95,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/scrollroklogo.png"
+  image_path: "assets/pauzelogo.png"
 
 dependency_overrides:
   flutter_inappwebview_android:

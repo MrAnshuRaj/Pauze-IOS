@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'onboarding_screen_1.dart';
 import 'onboarding_screen_2.dart';
@@ -9,7 +8,16 @@ import 'onboarding_screen_5.dart';
 import 'onboarding_screen_6.dart';
 import 'onboarding_screen_7.dart';
 import 'onboarding_screen_8.dart';
-import 'onboarding_step_header.dart';
+import 'onboarding_screen_9.dart';
+import 'onboarding_screen_10.dart';
+import 'onboarding_screen_11.dart';
+import 'onboarding_screen_12.dart';
+import 'onboarding_screen_13.dart';
+import 'onboarding_screen_14.dart';
+import 'onboarding_screen_15.dart';
+import 'onboarding_screen_16.dart';
+import 'onboarding_screen_17.dart';
+import 'onboarding_screen_18.dart';
 
 class OnboardingFlowScreen extends StatefulWidget {
   const OnboardingFlowScreen({super.key, required this.onCompleted});
@@ -21,8 +29,6 @@ class OnboardingFlowScreen extends StatefulWidget {
 }
 
 class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
-  static const int _totalSteps = 18;
-
   late final PageController _pageController;
   int _currentPage = 0;
   bool _isCompleting = false;
@@ -112,19 +118,92 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
             _completeFlow();
           },
         ),
-        _OnboardingPlaceholderScreen(
-          currentStep: 9,
-          totalSteps: _totalSteps,
-          isSubmitting: _isCompleting,
-          onContinue: _completeFlow,
-          onSkip: _completeFlow,
+        OnboardingScreen9(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen10(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen11(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen12(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen13(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen14(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen15(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen16(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen17(
+          onNext: () {
+            _goToNextStep();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
+        ),
+        OnboardingScreen18(
+          onNext: () {
+            _completeFlow();
+          },
+          onSkip: () {
+            _completeFlow();
+          },
         ),
       ],
     );
   }
 
   Future<void> _goToNextStep() async {
-    if (_currentPage >= 8) {
+    if (_currentPage >= 17) {
       await _completeFlow();
       return;
     }
@@ -149,140 +228,5 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
         setState(() => _isCompleting = false);
       }
     }
-  }
-}
-
-class _OnboardingPlaceholderScreen extends StatelessWidget {
-  const _OnboardingPlaceholderScreen({
-    required this.currentStep,
-    required this.totalSteps,
-    required this.isSubmitting,
-    required this.onContinue,
-    required this.onSkip,
-  });
-
-  final int currentStep;
-  final int totalSteps;
-  final bool isSubmitting;
-  final Future<void> Function() onContinue;
-  final Future<void> Function() onSkip;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF9F5),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: <Widget>[
-              const SizedBox(height: 12),
-              OnboardingTopBar(
-                currentStep: currentStep,
-                totalSteps: totalSteps,
-                onSkip: isSubmitting ? null : _handleSkip,
-              ),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 340),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const <Widget>[
-                        Text(
-                          'Screen 9 placeholder',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFF2E2520),
-                            fontSize: 34,
-                            height: 1.05,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.8,
-                          ),
-                        ),
-                        SizedBox(height: 18),
-                        Text(
-                          'Screen 8 now routes correctly into this temporary ninth step, so the onboarding flow stays intact while the remaining pages are designed.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFF6B6057),
-                            fontSize: 16,
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).padding.bottom + 12,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 58,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999),
-                      gradient: const LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: <Color>[Color(0xFFFF8C42), Color(0xFFFF5F8F)],
-                      ),
-                      boxShadow: const <BoxShadow>[
-                        BoxShadow(
-                          color: Color(0x332E2520),
-                          blurRadius: 22,
-                          offset: Offset(0, 12),
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: isSubmitting ? null : _handleContinue,
-                        borderRadius: BorderRadius.circular(999),
-                        child: Center(
-                          child: isSubmitting
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.4,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : const Text(
-                                  'Continue',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _handleContinue() {
-    HapticFeedback.lightImpact();
-    onContinue();
-  }
-
-  void _handleSkip() {
-    HapticFeedback.lightImpact();
-    onSkip();
   }
 }

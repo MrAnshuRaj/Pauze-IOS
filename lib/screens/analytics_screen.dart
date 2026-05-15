@@ -1248,6 +1248,7 @@ class _GlassBottomNav extends StatelessWidget {
             Expanded(
               child: _BottomNavItem(
                 icon: Icons.home_outlined,
+                label: 'Dashboard',
                 selected: false,
                 onTap: () {
                   Navigator.of(context).pushReplacement(
@@ -1259,15 +1260,15 @@ class _GlassBottomNav extends StatelessWidget {
             Expanded(
               child: _BottomNavItem(
                 icon: Icons.auto_graph_rounded,
-                label: 'Activity',
+                label: 'Analytics',
                 selected: true,
                 onTap: () {},
               ),
             ),
             Expanded(
               child: _BottomNavItem(
-                icon: Icons.block_rounded,
-                label: 'Blocked',
+                icon: Icons.settings_outlined,
+                label: 'Settings',
                 selected: false,
                 onTap: () {
                   Navigator.of(context).pushReplacement(

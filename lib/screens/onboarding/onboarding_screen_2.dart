@@ -726,6 +726,38 @@ class _PauMascotPainter extends CustomPainter {
       return;
     }
 
+    if (state == 'healing') {
+      final Path browLeft = Path()
+        ..moveTo(size.width * 0.35, size.height * 0.34)
+        ..quadraticBezierTo(
+          size.width * 0.40,
+          size.height * 0.31,
+          size.width * 0.45,
+          size.height * 0.35,
+        );
+      final Path browRight = Path()
+        ..moveTo(size.width * 0.55, size.height * 0.35)
+        ..quadraticBezierTo(
+          size.width * 0.60,
+          size.height * 0.31,
+          size.width * 0.65,
+          size.height * 0.34,
+        );
+      canvas.drawPath(browLeft, eyebrowPaint);
+      canvas.drawPath(browRight, eyebrowPaint);
+
+      final Path mouth = Path()
+        ..moveTo(size.width * 0.39, size.height * 0.56)
+        ..quadraticBezierTo(
+          size.width * 0.50,
+          size.height * 0.62,
+          size.width * 0.61,
+          size.height * 0.56,
+        );
+      canvas.drawPath(mouth, featurePaint);
+      return;
+    }
+
     final Path neutralSmile = Path()
       ..moveTo(size.width * 0.40, size.height * 0.56)
       ..quadraticBezierTo(
